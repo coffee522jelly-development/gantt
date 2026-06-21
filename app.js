@@ -32,6 +32,7 @@ const newCustomHolidayInput = document.getElementById('new-custom-holiday');
 const addCustomHolidayBtn = document.getElementById('add-custom-holiday-btn');
 const customHolidayList = document.getElementById('custom-holiday-list');
 const themeToggleBtn = document.getElementById('theme-toggle-btn');
+const accentColorPicker = document.getElementById('accent-color-picker');
 
 // Gantt Config
 const GANTT_CELL_WIDTH = 40; // px
@@ -214,6 +215,10 @@ function initTheme() {
     if (isDark) {
         document.documentElement.classList.add('dark');
     }
+
+    const savedAccentColor = localStorage.getItem('ganttApp_accent_color') || '#3b82f6';
+    accentColorPicker.value = savedAccentColor;
+    document.documentElement.style.setProperty('--accent-color', savedAccentColor);
 }
 
 themeToggleBtn.addEventListener('click', () => {
@@ -221,6 +226,15 @@ themeToggleBtn.addEventListener('click', () => {
     const isDark = document.documentElement.classList.contains('dark');
     localStorage.setItem('ganttApp_theme', isDark ? 'dark' : 'light');
     renderApp(); // Re-render to update chart colors
+});
+
+accentColorPicker.addEventListener('input', (e) => {
+    const color = e.target.value;
+    document.documentElement.style.setProperty('--accent-color', color);
+    localStorage.setItem('ganttApp_accent_color', color);
+    if (!viewBurnup.classList.contains('hidden')) {
+        renderBurnUpChart(); // Update chart color instantly
+    }
 });
 
 function setupProjectSettings() {
@@ -886,6 +900,14 @@ function renderBurnUpChart() {
     Chart.defaults.color = isDark ? '#EBEBEB' : '#37352f';
     const gridColor = isDark ? '#2F2F2F' : '#E5E7EB';
 
+    // Convert hex accent color to rgba for background
+    // document.documentElement.style is more reliable than getComputedStyle immediately after switching
+    const hexColor = document.documentElement.style.getPropertyValue('--accent-color').trim() || localStorage.getItem('ganttApp_accent_color') || '#3b82f6';
+    const r = parseInt(hexColor.slice(1, 3), 16) || 59;
+    const g = parseInt(hexColor.slice(3, 5), 16) || 130;
+    const b = parseInt(hexColor.slice(5, 7), 16) || 246;
+    const rgbaColor = `rgba(${r}, ${g}, ${b}, 0.5)`;
+
     const ctx = burnupChartCanvas.getContext('2d');
     burnupChartInstance = new Chart(ctx, {
         type: 'line',
@@ -898,8 +920,8 @@ function renderBurnUpChart() {
                 {
                     label: '実績（完了サブタスク数）',
                     data: data.actualData,
-                    borderColor: 'rgb(59, 130, 246)', // Blue-500
-                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                    borderColor: hexColor,
+                    backgroundColor: rgbaColor,
                     tension: 0.1,
                     spanGaps: true
                 },

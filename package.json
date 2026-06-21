@@ -1,0 +1,25 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "ガントチャートとバーンアップチャートを同時に管理できる、ブラウザベースのプロジェクト管理アプリケーションです。将来的にTauri v2を用いたデスクトップアプリ化を見据え、フロントエンド技術（HTML, CSS, JavaScript）のみで構築されています。",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coffee522jelly-development/gantt.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/coffee522jelly-development/gantt/issues"
+  },
+  "homepage": "https://github.com/coffee522jelly-development/gantt#readme",
+  "dependencies": {
+    "@playwright/test": "^1.61.0",
+    "playwright": "^1.61.0"
+  }
+}

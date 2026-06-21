@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gantt & Burn-up Chart App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
         }
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -23,9 +23,12 @@
             </div>
         </div>
         <div id="project-settings" class="flex gap-4 items-center mt-2 sm:mt-0 text-sm">
-            <button id="theme-toggle-btn" class="p-1 rounded hover:bg-gray-100 dark:hover:bg-[#2F2F2F] transition-colors" title="テーマ切り替え">
-                🌓
-            </button>
+            <div class="flex items-center border border-gray-200 dark:border-gray-700 rounded overflow-hidden">
+                <button id="theme-toggle-btn" class="p-1 hover:bg-gray-100 dark:hover:bg-[#2F2F2F] transition-colors border-r border-gray-200 dark:border-gray-700" title="テーマ切り替え">
+                    🌓
+                </button>
+                <input type="color" id="accent-color-picker" value="#3b82f6" class="w-8 h-8 p-0 border-0 bg-transparent cursor-pointer" title="アクセントカラー設定">
+            </div>
             <div class="flex items-center gap-2">
                 <label for="project-start" class="text-gray-500 dark:text-gray-400">開始:</label>
                 <input type="date" id="project-start" class="bg-transparent border border-gray-200 dark:border-gray-700 rounded p-1 dark:text-[#EBEBEB] dark:[color-scheme:dark]">
