@@ -641,17 +641,29 @@ function setupBarInteractions(barEl, task, taskIndex, dates) {
         const cellSpan = Math.round(finalWidth / GANTT_CELL_WIDTH);
         const endIndex = startIndex + cellSpan - 1;
 
-        // Apply new dates if within bounds
+        // Apply new dates if within bounds and changed
+        let dateChanged = false;
         if (startIndex >= 0 && endIndex < dates.length) {
-            // Update task dates. Note: We snap to the exact grid cell date,
-            // even if it falls on a non-working day visually, but you can adjust logic to skip holidays if needed.
-            // For simplicity, dropping it sets the start/end date exactly to the column date.
-            task.startDate = dates[startIndex];
-            task.endDate = dates[endIndex];
-            saveData();
+            if (task.startDate !== dates[startIndex] || task.endDate !== dates[endIndex]) {
+                task.startDate = dates[startIndex];
+                task.endDate = dates[endIndex];
+                saveData();
+                dateChanged = true;
+            } else {
+                // If the date hasn't changed, make sure the bar snaps back to its original visual position
+                // otherwise a slight mouse movement without crossing a cell threshold leaves it offset
+                const originalStartIndex = dates.indexOf(task.startDate);
+                const originalEndIndex = dates.indexOf(task.endDate);
+                barEl.style.left = `${originalStartIndex * GANTT_CELL_WIDTH}px`;
+                barEl.style.width = `${(originalEndIndex - originalStartIndex + 1) * GANTT_CELL_WIDTH}px`;
+            }
         }
 
-        renderGantt(); // Re-render to snap to grid
+        // Only re-render if a drag actually changed the dates, to prevent
+        // destroying the DOM element that is needed to register a subsequent 'dblclick'
+        if (dateChanged) {
+            renderGantt(); // Re-render to snap to grid
+        }
 
         isDragging = false;
         isResizingLeft = false;
@@ -659,6 +671,13 @@ function setupBarInteractions(barEl, task, taskIndex, dates) {
     };
 
     barEl.addEventListener('mousedown', onMouseDown);
+
+    // Add double-click to open task details
+    barEl.addEventListener('dblclick', (e) => {
+        // Prevent event from bubbling up and causing unintended behaviors
+        e.stopPropagation();
+        openTaskDetail(task.id);
+    });
 }
 
 // --- Task Detail View Logic ---
