@@ -39,6 +39,9 @@ const GANTT_CELL_WIDTH = 40; // px
 const ROW_HEIGHT = 48; // px (3rem)
 const HEADER_HEIGHT = 32; // px (2rem)
 
+// Detail View Global State
+let currentDetailTaskId = null;
+
 // Data Persistence
 function saveData() {
     const dataToSave = {
@@ -294,8 +297,11 @@ function renderTaskList() {
 
         // --- Main Task Row ---
         const mainRow = document.createElement('div');
-        mainRow.className = 'flex items-center justify-between px-4 hover:bg-gray-50 dark:hover:bg-[#2A2A2A] group transition-colors';
+        mainRow.className = 'flex items-center justify-between px-4 hover:bg-gray-50 dark:hover:bg-[#2A2A2A] group transition-colors cursor-pointer';
         mainRow.style.height = `${ROW_HEIGHT}px`;
+        mainRow.addEventListener('dblclick', () => {
+            openTaskDetail(task.id);
+        });
 
         const dragHandle = document.createElement('span');
         dragHandle.className = 'text-gray-400 cursor-grab mr-2 px-1 drag-handle flex-shrink-0';
@@ -655,6 +661,109 @@ function setupBarInteractions(barEl, task, taskIndex, dates) {
     barEl.addEventListener('mousedown', onMouseDown);
 }
 
+// --- Task Detail View Logic ---
+function openTaskDetail(taskId) {
+    currentDetailTaskId = taskId;
+    const task = appState.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    // Ensure data exists for older tasks
+    if (task.notes === undefined) task.notes = "";
+    if (task.tags === undefined) task.tags = [];
+
+    // Populate Data
+    document.getElementById('detail-task-name').value = task.name;
+
+    // Format dates nicely: YYYY-MM-DD -> YYYY/MM/DD
+    const formatStr = (dStr) => dStr ? dStr.replace(/-/g, '/') : '';
+    document.getElementById('detail-task-dates').textContent = `${formatStr(task.startDate)} 〜 ${formatStr(task.endDate)}`;
+
+    document.getElementById('detail-task-notes').value = task.notes;
+
+    renderDetailTags();
+
+    // Slide panel in
+    const panel = document.getElementById('task-detail-panel');
+    panel.classList.remove('translate-x-full');
+    panel.classList.add('translate-x-0');
+}
+
+function closeTaskDetail() {
+    currentDetailTaskId = null;
+    const panel = document.getElementById('task-detail-panel');
+    panel.classList.remove('translate-x-0');
+    panel.classList.add('translate-x-full');
+}
+
+function renderDetailTags() {
+    const task = appState.tasks.find(t => t.id === currentDetailTaskId);
+    if (!task) return;
+
+    const tagsList = document.getElementById('detail-task-tags-list');
+    tagsList.innerHTML = '';
+
+    if (task.tags && task.tags.length > 0) {
+        task.tags.forEach(tag => {
+            const tagEl = document.createElement('span');
+            tagEl.className = 'inline-flex items-center gap-1 bg-gray-100 dark:bg-[#333333] border border-gray-200 dark:border-gray-600 px-2 py-0.5 rounded text-xs text-gray-700 dark:text-gray-300';
+            tagEl.textContent = tag;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'text-gray-400 hover:text-red-500 transition-colors leading-none';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.onclick = () => {
+                task.tags = task.tags.filter(t => t !== tag);
+                saveData();
+                renderDetailTags();
+                // We might want to re-render the task list if we decide to show tags there later
+            };
+
+            tagEl.appendChild(removeBtn);
+            tagsList.appendChild(tagEl);
+        });
+    }
+}
+
+document.getElementById('close-detail-panel-btn').addEventListener('click', closeTaskDetail);
+
+// Detail View Input Event Listeners
+document.getElementById('detail-task-name').addEventListener('change', (e) => {
+    if (!currentDetailTaskId) return;
+    const task = appState.tasks.find(t => t.id === currentDetailTaskId);
+    if (task) {
+        task.name = e.target.value.trim() || "Untitled Task";
+        saveData();
+        renderApp(); // Update task list and gantt bar texts
+    }
+});
+
+document.getElementById('detail-task-notes').addEventListener('input', (e) => {
+    if (!currentDetailTaskId) return;
+    const task = appState.tasks.find(t => t.id === currentDetailTaskId);
+    if (task) {
+        task.notes = e.target.value;
+        saveData();
+    }
+});
+
+document.getElementById('detail-task-tag-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!currentDetailTaskId) return;
+        const task = appState.tasks.find(t => t.id === currentDetailTaskId);
+        if (!task) return;
+
+        const tag = e.target.value.trim();
+        if (tag && !task.tags.includes(tag)) {
+            task.tags.push(tag);
+            saveData();
+            renderDetailTags();
+        }
+        e.target.value = '';
+    }
+});
+
+
 // Task Management Logic
 function addTask() {
     const name = newTaskNameInput.value.trim();
@@ -670,7 +779,9 @@ function addTask() {
         name: name,
         startDate: appState.projectStartDate,
         endDate: addWorkingDays(appState.projectStartDate, 2), // Default 3 working days duration (start + 2)
-        subtasks: []
+        subtasks: [],
+        notes: "",
+        tags: []
     };
 
     appState.tasks.push(newTask);

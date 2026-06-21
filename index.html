@@ -88,6 +88,46 @@
         </div>
     </main>
 
+    <!-- Task Detail Sliding Panel -->
+    <div id="task-detail-panel" class="fixed right-0 top-0 h-full w-80 bg-white dark:bg-[#202020] border-l border-gray-200 dark:border-gray-700 shadow-2xl transform translate-x-full transition-transform duration-300 z-40 flex flex-col">
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+            <h2 class="text-sm font-bold text-gray-500 dark:text-gray-400">タスク詳細</h2>
+            <button id="close-detail-panel-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto flex flex-col gap-6 text-sm">
+
+            <div>
+                <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">タスク名</label>
+                <input type="text" id="detail-task-name" class="w-full bg-transparent border-b border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:border-blue-500 dark:focus:border-blue-500 focus:outline-none py-1 text-base font-medium transition-colors">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">期間</label>
+                <div id="detail-task-dates" class="py-1 text-gray-700 dark:text-gray-300">
+                    <!-- YYYY/MM/DD 〜 YYYY/MM/DD -->
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">タグ</label>
+                <div id="detail-task-tags-list" class="flex flex-wrap gap-2 mb-2">
+                    <!-- Tags will be injected here -->
+                </div>
+                <input type="text" id="detail-task-tag-input" placeholder="タグを追加 (Enter)" class="w-full bg-gray-50 dark:bg-[#191919] border border-gray-200 dark:border-gray-700 rounded p-1.5 focus:outline-none focus:border-gray-400 transition-colors">
+            </div>
+
+            <div class="flex-1 flex flex-col min-h-[150px]">
+                <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">備考</label>
+                <textarea id="detail-task-notes" class="flex-1 w-full bg-gray-50 dark:bg-[#191919] border border-gray-200 dark:border-gray-700 rounded p-2 focus:outline-none focus:border-gray-400 transition-colors resize-none" placeholder="タスクの備考を入力..."></textarea>
+            </div>
+
+        </div>
+    </div>
+
     <!-- Custom Holiday Modal -->
     <div id="custom-holiday-modal" class="hidden fixed inset-0 bg-black/20 dark:bg-black/40 overflow-y-auto h-full w-full z-50 flex justify-center items-center backdrop-blur-sm">
         <div class="bg-white dark:bg-[#202020] p-6 rounded shadow-lg w-full max-w-md border border-gray-200 dark:border-gray-700">
