@@ -270,74 +270,13 @@ function renderTaskList() {
         dragHandle.className = 'text-gray-400 cursor-grab mr-2 px-1 drag-handle flex-shrink-0';
         dragHandle.innerHTML = '⋮⋮';
 
-        const taskCheckbox = document.createElement('input');
-        taskCheckbox.type = 'checkbox';
-        taskCheckbox.className = 'mr-2 h-4 w-4 text-blue-600 rounded flex-shrink-0';
-        taskCheckbox.checked = task.completed;
-        taskCheckbox.onchange = () => toggleTaskStatus(task.id, taskCheckbox.checked);
-
         const nameSpan = document.createElement('span');
         nameSpan.className = 'truncate flex-1 font-medium';
         nameSpan.textContent = task.name;
-        if (task.completed) {
-            nameSpan.classList.add('line-through', 'text-gray-500');
-        }
 
         const nameContainer = document.createElement('div');
         nameContainer.className = 'flex items-center flex-1 overflow-hidden';
-        nameContainer.appendChild(taskCheckbox);
         nameContainer.appendChild(nameSpan);
-
-        if (task.completed && task.completedAt) {
-            const dateInputWrapper = document.createElement('div');
-            dateInputWrapper.className = 'flex items-center ml-2 flex-shrink-0';
-
-            const dateLabel = document.createElement('span');
-            dateLabel.className = 'text-xs text-gray-500 mr-1';
-            dateLabel.textContent = '完了:';
-
-            const dateInput = document.createElement('input');
-            dateInput.type = 'date';
-            dateInput.className = 'text-xs border border-gray-300 rounded px-1';
-            dateInput.value = task.completedAt;
-            dateInput.min = appState.projectStartDate;
-            dateInput.max = appState.projectEndDate;
-
-            dateInput.onchange = (e) => {
-                const newDate = e.target.value;
-                if (!newDate) {
-                    e.target.value = task.completedAt;
-                    return;
-                }
-                if (!isWorkingDay(newDate)) {
-                    alert('選択した日付は休日です。営業日を選択してください。');
-                    e.target.value = task.completedAt;
-                    return;
-                }
-                if (newDate < appState.projectStartDate || newDate > appState.projectEndDate) {
-                    alert('プロジェクト期間内の日付を選択してください。');
-                    e.target.value = task.completedAt;
-                    return;
-                }
-                task.completedAt = newDate;
-
-                // Sync completed subtasks' dates to the new main task date
-                if (task.subtasks) {
-                    task.subtasks.forEach(st => {
-                        if (st.completed) {
-                            st.completedAt = newDate;
-                        }
-                    });
-                }
-
-                saveData();
-                renderApp();
-            };
-
-            dateInputWrapper.appendChild(dateLabel);
-            dateInputWrapper.appendChild(dateInput);
-            nameContainer.appendChild(dateInputWrapper);
-        }
 
         const leftWrapper = document.createElement('div');
         leftWrapper.className = 'flex items-center flex-1 overflow-hidden';
@@ -700,8 +639,6 @@ function addTask() {
         name: name,
         startDate: appState.projectStartDate,
         endDate: addWorkingDays(appState.projectStartDate, 2), // Default 3 working days duration (start + 2)
-        completed: false,
-        completedAt: null,
         subtasks: []
     };
 
@@ -758,29 +695,6 @@ function toggleSubtaskStatus(taskId, subtaskId, isCompleted) {
         subtask.completedAt = getValidCompletionDate() || formatDate(new Date());
     } else {
         subtask.completedAt = null;
-    }
-
-    saveData();
-    renderApp();
-}
-
-function toggleTaskStatus(taskId, isCompleted) {
-    const task = appState.tasks.find(t => t.id === taskId);
-    if (!task) return;
-
-    task.completed = isCompleted;
-    if (isCompleted) {
-        task.completedAt = getValidCompletionDate() || formatDate(new Date());
-    } else {
-        task.completedAt = null;
-    }
-
-    // Sync subtasks
-    if (task.subtasks) {
-        task.subtasks.forEach(st => {
-            st.completed = isCompleted;
-            st.completedAt = task.completedAt;
-        });
     }
 
     saveData();
