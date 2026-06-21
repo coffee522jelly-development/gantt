@@ -320,6 +320,16 @@ function renderTaskList() {
                     return;
                 }
                 task.completedAt = newDate;
+
+                // Sync completed subtasks' dates to the new main task date
+                if (task.subtasks) {
+                    task.subtasks.forEach(st => {
+                        if (st.completed) {
+                            st.completedAt = newDate;
+                        }
+                    });
+                }
+
                 saveData();
                 renderApp();
             };
@@ -765,6 +775,14 @@ function toggleTaskStatus(taskId, isCompleted) {
         task.completedAt = null;
     }
 
+    // Sync subtasks
+    if (task.subtasks) {
+        task.subtasks.forEach(st => {
+            st.completed = isCompleted;
+            st.completedAt = task.completedAt;
+        });
+    }
+
     saveData();
     renderApp();
 }
@@ -889,6 +907,17 @@ function calculateBurnUpData() {
     // Sort completed subtasks dates
     completedSubtasks.sort();
 
+    // Determine the max date to draw the actual line up to.
+    // Usually today, but if user set a completion date in the future, we draw up to that.
+    const todayStr = formatDate(new Date());
+    let maxActualDateStr = todayStr;
+    if (completedSubtasks.length > 0) {
+        const latestSubtaskCompletion = completedSubtasks[completedSubtasks.length - 1];
+        if (latestSubtaskCompletion > maxActualDateStr) {
+            maxActualDateStr = latestSubtaskCompletion;
+        }
+    }
+
     workingDays.forEach((day, index) => {
         // Plan line
         const idealPace = (totalSubtasksCount / (workingDays.length - 1 || 1)) * index;
@@ -898,12 +927,11 @@ function calculateBurnUpData() {
         // Count subtasks completed on or before this day
         const completedCount = completedSubtasks.filter(date => date <= day).length;
 
-        // Only push actual data up to "today" (so the line stops at today if project is ongoing)
-        const todayStr = formatDate(new Date());
-        if (day <= todayStr) {
+        // Push actual data up to maxActualDateStr
+        if (day <= maxActualDateStr) {
             actualData.push(completedCount);
         } else {
-            actualData.push(null); // Don't draw actual line in the future
+            actualData.push(null); // Don't draw actual line beyond max actual date
         }
     });
 
