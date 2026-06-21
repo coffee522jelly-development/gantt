@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gantt & Burn-up Chart App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col font-sans">
+    <header class="bg-blue-600 text-white p-4 shadow-md flex flex-wrap justify-between items-center">
+        <div class="flex items-center gap-4">
+            <h1 class="text-xl font-bold">プロジェクト管理</h1>
+            <div class="bg-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
+                進捗: <span id="project-progress">0%</span>
+            </div>
+        </div>
+        <div id="project-settings" class="flex gap-4 items-center mt-2 sm:mt-0">
+            <div class="flex items-center gap-2">
+                <label for="project-start" class="text-sm">開始:</label>
+                <input type="date" id="project-start" class="text-black p-1 rounded text-sm">
+            </div>
+            <div class="flex items-center gap-2">
+                <label for="project-end" class="text-sm">終了:</label>
+                <input type="date" id="project-end" class="text-black p-1 rounded text-sm">
+            </div>
+        </div>
+    </header>
+
+    <nav class="bg-white border-b border-gray-200">
+        <ul class="flex">
+            <li class="mr-1">
+                <a class="bg-white inline-block py-2 px-4 text-blue-500 font-semibold border-b-2 border-blue-500 cursor-pointer" id="tab-gantt">ガントチャート</a>
+            </li>
+            <li class="mr-1">
+                <a class="bg-white inline-block py-2 px-4 text-gray-500 hover:text-blue-800 font-semibold cursor-pointer" id="tab-burnup">バーンアップチャート</a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="flex-1 overflow-hidden relative">
+        <div id="view-gantt" class="h-full flex flex-col p-4">
+            <div class="mb-4 flex gap-2">
+                <input type="text" id="new-task-name" placeholder="新しいタスク名" class="border border-gray-300 p-2 rounded w-64 shadow-sm">
+                <button id="add-task-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded shadow-sm">タスク追加</button>
+            </div>
+            <div class="flex flex-1 bg-white shadow rounded-lg overflow-hidden border border-gray-200" style="min-height: 0;">
+                <div class="w-1/4 border-r border-gray-200 flex flex-col overflow-y-auto">
+                    <!-- Headers for task list to match gantt header height -->
+                    <div class="h-8 border-b border-gray-200 bg-gray-50 flex items-center px-4 font-semibold text-sm sticky top-0 z-10 shadow-sm">タスク</div>
+                    <div id="task-list-container" class="flex-1 pb-16">
+                        <!-- Task list items -->
+                    </div>
+                </div>
+                <div class="w-3/4 overflow-x-auto overflow-y-auto relative" id="gantt-scroll-area">
+                    <div id="gantt-chart-container" class="gantt-grid pb-16">
+                        <!-- Gantt chart cells and bars here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-burnup" class="h-full hidden p-4 flex flex-col">
+            <div class="mb-4 flex justify-end">
+                <button id="export-chart-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded shadow-sm">
+                    PNGで保存
+                </button>
+            </div>
+            <div class="bg-white shadow rounded-lg p-4 flex-1 flex items-center justify-center min-h-0">
+                <canvas id="burnupChart" class="w-full h-full"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Subtask Modal -->
+    <div id="subtask-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex justify-center items-center">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modal-task-title" class="text-lg font-bold">サブタスク</h2>
+                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700 text-xl font-bold">&times;</button>
+            </div>
+
+            <div class="mb-4 flex gap-2">
+                <input type="text" id="new-subtask-name" placeholder="新しいサブタスク" class="border border-gray-300 p-2 rounded flex-1">
+                <button id="add-subtask-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">追加</button>
+            </div>
+
+            <ul id="subtask-list" class="max-h-60 overflow-y-auto border-t border-gray-200 divide-y divide-gray-200">
+                <!-- Subtasks will be rendered here -->
+            </ul>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
