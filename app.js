@@ -139,6 +139,43 @@ function getWorkingDays(startDateStr, endDateStr) {
     return dates.filter(date => isWorkingDay(date));
 }
 
+// Get a valid completion date (today if valid, otherwise closest past valid working day)
+function getValidCompletionDate() {
+    if (!appState.projectStartDate || !appState.projectEndDate) return null;
+
+    let targetDateStr = formatDate(new Date());
+
+    // Cap at project end date
+    if (targetDateStr > appState.projectEndDate) {
+        targetDateStr = appState.projectEndDate;
+    }
+
+    // Find closest working day looking backwards
+    let currentDate = new Date(targetDateStr);
+    const startDate = new Date(appState.projectStartDate);
+
+    while (currentDate >= startDate) {
+        const dateStr = formatDate(currentDate);
+        if (isWorkingDay(dateStr)) {
+            return dateStr;
+        }
+        currentDate.setDate(currentDate.getDate() - 1);
+    }
+
+    // If no valid day in past, try forward from start date up to target date
+    currentDate = new Date(appState.projectStartDate);
+    const targetDateObj = new Date(targetDateStr);
+    while (currentDate <= targetDateObj) {
+        const dateStr = formatDate(currentDate);
+        if (isWorkingDay(dateStr)) {
+            return dateStr;
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return null; // Fallback if absolutely no working days exist
+}
+
 // Add N working days to a start date and return the resulting date string
 function addWorkingDays(startDateStr, daysToAdd) {
     let currentDate = new Date(startDateStr);
@@ -246,17 +283,51 @@ function renderTaskList() {
             nameSpan.classList.add('line-through', 'text-gray-500');
         }
 
-        const dateSpan = document.createElement('span');
-        dateSpan.className = 'text-xs text-gray-500 ml-2 whitespace-nowrap';
-        if (task.completed && task.completedAt) {
-            dateSpan.textContent = `(完了: ${task.completedAt})`;
-        }
-
         const nameContainer = document.createElement('div');
         nameContainer.className = 'flex items-center flex-1 overflow-hidden';
         nameContainer.appendChild(taskCheckbox);
         nameContainer.appendChild(nameSpan);
-        nameContainer.appendChild(dateSpan);
+
+        if (task.completed && task.completedAt) {
+            const dateInputWrapper = document.createElement('div');
+            dateInputWrapper.className = 'flex items-center ml-2 flex-shrink-0';
+
+            const dateLabel = document.createElement('span');
+            dateLabel.className = 'text-xs text-gray-500 mr-1';
+            dateLabel.textContent = '完了:';
+
+            const dateInput = document.createElement('input');
+            dateInput.type = 'date';
+            dateInput.className = 'text-xs border border-gray-300 rounded px-1';
+            dateInput.value = task.completedAt;
+            dateInput.min = appState.projectStartDate;
+            dateInput.max = appState.projectEndDate;
+
+            dateInput.onchange = (e) => {
+                const newDate = e.target.value;
+                if (!newDate) {
+                    e.target.value = task.completedAt;
+                    return;
+                }
+                if (!isWorkingDay(newDate)) {
+                    alert('選択した日付は休日です。営業日を選択してください。');
+                    e.target.value = task.completedAt;
+                    return;
+                }
+                if (newDate < appState.projectStartDate || newDate > appState.projectEndDate) {
+                    alert('プロジェクト期間内の日付を選択してください。');
+                    e.target.value = task.completedAt;
+                    return;
+                }
+                task.completedAt = newDate;
+                saveData();
+                renderApp();
+            };
+
+            dateInputWrapper.appendChild(dateLabel);
+            dateInputWrapper.appendChild(dateInput);
+            nameContainer.appendChild(dateInputWrapper);
+        }
 
         const leftWrapper = document.createElement('div');
         leftWrapper.className = 'flex items-center flex-1 overflow-hidden';
@@ -300,6 +371,37 @@ function renderTaskList() {
 
                 stLeft.appendChild(stCheckbox);
                 stLeft.appendChild(stName);
+
+                if (subtask.completed && subtask.completedAt) {
+                    const stDateInput = document.createElement('input');
+                    stDateInput.type = 'date';
+                    stDateInput.className = 'text-xs border border-gray-300 rounded px-1 ml-2 text-gray-500 w-28';
+                    stDateInput.value = subtask.completedAt;
+                    stDateInput.min = appState.projectStartDate;
+                    stDateInput.max = appState.projectEndDate;
+
+                    stDateInput.onchange = (e) => {
+                        const newDate = e.target.value;
+                        if (!newDate) {
+                            e.target.value = subtask.completedAt;
+                            return;
+                        }
+                        if (!isWorkingDay(newDate)) {
+                            alert('選択した日付は休日です。営業日を選択してください。');
+                            e.target.value = subtask.completedAt;
+                            return;
+                        }
+                        if (newDate < appState.projectStartDate || newDate > appState.projectEndDate) {
+                            alert('プロジェクト期間内の日付を選択してください。');
+                            e.target.value = subtask.completedAt;
+                            return;
+                        }
+                        subtask.completedAt = newDate;
+                        saveData();
+                        renderApp();
+                    };
+                    stLeft.appendChild(stDateInput);
+                }
 
                 const stDeleteBtn = document.createElement('button');
                 stDeleteBtn.className = 'text-red-500 text-xs hover:underline ml-2';
@@ -643,7 +745,7 @@ function toggleSubtaskStatus(taskId, subtaskId, isCompleted) {
 
     subtask.completed = isCompleted;
     if (isCompleted) {
-        subtask.completedAt = formatDate(new Date());
+        subtask.completedAt = getValidCompletionDate() || formatDate(new Date());
     } else {
         subtask.completedAt = null;
     }
@@ -658,7 +760,7 @@ function toggleTaskStatus(taskId, isCompleted) {
 
     task.completed = isCompleted;
     if (isCompleted) {
-        task.completedAt = formatDate(new Date());
+        task.completedAt = getValidCompletionDate() || formatDate(new Date());
     } else {
         task.completedAt = null;
     }
