@@ -22,12 +22,6 @@ const ganttChartContainer = document.getElementById('gantt-chart-container');
 const ganttScrollArea = document.getElementById('gantt-scroll-area');
 const newTaskNameInput = document.getElementById('new-task-name');
 const addTaskBtn = document.getElementById('add-task-btn');
-const subtaskModal = document.getElementById('subtask-modal');
-const closeModalBtn = document.getElementById('close-modal-btn');
-const modalTaskTitle = document.getElementById('modal-task-title');
-const newSubtaskNameInput = document.getElementById('new-subtask-name');
-const addSubtaskBtn = document.getElementById('add-subtask-btn');
-const subtaskList = document.getElementById('subtask-list');
 const projectProgressEl = document.getElementById('project-progress');
 
 // Custom Holiday DOM Elements
@@ -37,8 +31,6 @@ const customHolidayModal = document.getElementById('custom-holiday-modal');
 const newCustomHolidayInput = document.getElementById('new-custom-holiday');
 const addCustomHolidayBtn = document.getElementById('add-custom-holiday-btn');
 const customHolidayList = document.getElementById('custom-holiday-list');
-
-let currentEditingTaskId = null;
 
 // Gantt Config
 const GANTT_CELL_WIDTH = 40; // px
@@ -225,34 +217,131 @@ function updateProgressDisplay() {
 function renderTaskList() {
     taskListContainer.innerHTML = '';
     appState.tasks.forEach((task, index) => {
-        const taskEl = document.createElement('div');
-        taskEl.className = 'flex items-center justify-between px-4 border-b border-gray-200 bg-white hover:bg-gray-50 group';
-        taskEl.style.height = `${ROW_HEIGHT}px`;
-        taskEl.dataset.id = task.id;
+        // Main task container (includes main row and subtasks)
+        const taskWrapper = document.createElement('div');
+        taskWrapper.className = 'border-b border-gray-200 bg-white task-wrapper';
+        taskWrapper.dataset.id = task.id;
 
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'truncate flex-1 cursor-pointer hover:underline text-blue-600';
-        nameSpan.textContent = task.name;
-        nameSpan.addEventListener('click', () => openSubtaskModal(task.id));
+        // --- Main Task Row ---
+        const mainRow = document.createElement('div');
+        mainRow.className = 'flex items-center justify-between px-4 hover:bg-gray-50 group';
+        mainRow.style.height = `${ROW_HEIGHT}px`;
 
         const dragHandle = document.createElement('span');
-        dragHandle.className = 'text-gray-400 cursor-grab mr-2 px-1 drag-handle';
+        dragHandle.className = 'text-gray-400 cursor-grab mr-2 px-1 drag-handle flex-shrink-0';
         dragHandle.innerHTML = '⋮⋮';
 
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1';
-        deleteBtn.innerHTML = '✕';
-        deleteBtn.title = '削除';
-        deleteBtn.onclick = () => deleteTask(task.id);
+        const taskCheckbox = document.createElement('input');
+        taskCheckbox.type = 'checkbox';
+        taskCheckbox.className = 'mr-2 h-4 w-4 text-blue-600 rounded flex-shrink-0';
+        taskCheckbox.checked = task.completed;
+        taskCheckbox.onchange = () => toggleTaskStatus(task.id, taskCheckbox.checked);
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'truncate flex-1 font-medium';
+        nameSpan.textContent = task.name;
+        if (task.completed) {
+            nameSpan.classList.add('line-through', 'text-gray-500');
+        }
+
+        const dateSpan = document.createElement('span');
+        dateSpan.className = 'text-xs text-gray-500 ml-2 whitespace-nowrap';
+        if (task.completed && task.completedAt) {
+            dateSpan.textContent = `(完了: ${task.completedAt})`;
+        }
+
+        const nameContainer = document.createElement('div');
+        nameContainer.className = 'flex items-center flex-1 overflow-hidden';
+        nameContainer.appendChild(taskCheckbox);
+        nameContainer.appendChild(nameSpan);
+        nameContainer.appendChild(dateSpan);
 
         const leftWrapper = document.createElement('div');
         leftWrapper.className = 'flex items-center flex-1 overflow-hidden';
         leftWrapper.appendChild(dragHandle);
-        leftWrapper.appendChild(nameSpan);
+        leftWrapper.appendChild(nameContainer);
 
-        taskEl.appendChild(leftWrapper);
-        taskEl.appendChild(deleteBtn);
-        taskListContainer.appendChild(taskEl);
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 ml-2 flex-shrink-0';
+        deleteBtn.innerHTML = '✕';
+        deleteBtn.title = '削除';
+        deleteBtn.onclick = () => deleteTask(task.id);
+
+        mainRow.appendChild(leftWrapper);
+        mainRow.appendChild(deleteBtn);
+        taskWrapper.appendChild(mainRow);
+
+        // --- Subtasks List ---
+        const subtasksContainer = document.createElement('div');
+        subtasksContainer.className = 'px-8 pb-2 bg-gray-50'; // Indented area for subtasks
+
+        const subtaskListEl = document.createElement('ul');
+        if (task.subtasks) {
+            task.subtasks.forEach(subtask => {
+                const li = document.createElement('li');
+                li.className = 'py-1 flex items-center justify-between text-sm';
+
+                const stLeft = document.createElement('div');
+                stLeft.className = 'flex items-center truncate';
+
+                const stCheckbox = document.createElement('input');
+                stCheckbox.type = 'checkbox';
+                stCheckbox.className = 'mr-2 h-3 w-3 text-blue-600 rounded';
+                stCheckbox.checked = subtask.completed;
+                stCheckbox.onchange = () => toggleSubtaskStatus(task.id, subtask.id, stCheckbox.checked);
+
+                const stName = document.createElement('span');
+                stName.textContent = subtask.name;
+                if (subtask.completed) {
+                    stName.classList.add('line-through', 'text-gray-500');
+                }
+
+                stLeft.appendChild(stCheckbox);
+                stLeft.appendChild(stName);
+
+                const stDeleteBtn = document.createElement('button');
+                stDeleteBtn.className = 'text-red-500 text-xs hover:underline ml-2';
+                stDeleteBtn.textContent = '削除';
+                stDeleteBtn.onclick = () => deleteSubtask(task.id, subtask.id);
+
+                li.appendChild(stLeft);
+                li.appendChild(stDeleteBtn);
+                subtaskListEl.appendChild(li);
+            });
+        }
+        subtasksContainer.appendChild(subtaskListEl);
+
+        // --- Add Subtask Input ---
+        const addSubtaskRow = document.createElement('div');
+        addSubtaskRow.className = 'flex mt-1 gap-2';
+
+        const subtaskInput = document.createElement('input');
+        subtaskInput.type = 'text';
+        subtaskInput.placeholder = '新しいサブタスク';
+        subtaskInput.className = 'border border-gray-300 p-1 rounded flex-1 text-sm';
+
+        const subtaskAddBtn = document.createElement('button');
+        subtaskAddBtn.className = 'bg-blue-500 hover:bg-blue-600 text-white font-bold px-2 rounded text-xs';
+        subtaskAddBtn.textContent = '追加';
+
+        const handleAddSubtask = () => {
+            const name = subtaskInput.value.trim();
+            if (name) {
+                addSubtaskInline(task.id, name);
+            }
+        };
+
+        subtaskAddBtn.onclick = handleAddSubtask;
+        subtaskInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleAddSubtask();
+        });
+
+        addSubtaskRow.appendChild(subtaskInput);
+        addSubtaskRow.appendChild(subtaskAddBtn);
+        subtasksContainer.appendChild(addSubtaskRow);
+
+        taskWrapper.appendChild(subtasksContainer);
+        taskListContainer.appendChild(taskWrapper);
     });
 
     // Initialize Sortable
@@ -286,9 +375,18 @@ function renderGantt() {
 
     if (numColumns <= 0) return;
 
+    // Calculate dynamic row heights based on rendered task wrappers
+    const taskWrappers = taskListContainer.querySelectorAll('.task-wrapper');
+    const rowHeights = Array.from(taskWrappers).map(el => el.offsetHeight);
+
     // Set grid template
     ganttChartContainer.style.gridTemplateColumns = `repeat(${numColumns}, ${GANTT_CELL_WIDTH}px)`;
-    ganttChartContainer.style.gridTemplateRows = `${HEADER_HEIGHT}px repeat(${appState.tasks.length}, ${ROW_HEIGHT}px)`;
+
+    let gridTemplateRows = `${HEADER_HEIGHT}px `;
+    rowHeights.forEach(h => {
+        gridTemplateRows += `${h}px `;
+    });
+    ganttChartContainer.style.gridTemplateRows = gridTemplateRows;
 
     // 1. Render Headers
     dates.forEach((dateStr, index) => {
@@ -338,13 +436,23 @@ function renderGantt() {
             // Positioning within the grid row
             bar.style.gridRow = index + 2;
 
+            // Calculate top position dynamically based on accumulated row heights
+            let accumulatedHeight = HEADER_HEIGHT;
+            for (let i = 0; i < index; i++) {
+                accumulatedHeight += rowHeights[i];
+            }
+
             // Use absolute positioning relative to the container for the bar
             // so it can span across grid cells smoothly during drag
             bar.style.gridColumn = '1 / -1'; // Span full row to allow absolute positioning within it
             bar.style.position = 'absolute';
             bar.style.left = `${startIndex * GANTT_CELL_WIDTH}px`;
             bar.style.width = `${(endIndex - startIndex + 1) * GANTT_CELL_WIDTH}px`;
-            bar.style.top = `${index * ROW_HEIGHT + HEADER_HEIGHT + (ROW_HEIGHT - 32)/2}px`; // center vertically in row, 32 is bar height
+
+            // We want to center the 32px bar within the main row height (48px) of this task wrapper.
+            // The task wrapper height is rowHeights[index]. The top of the wrapper is accumulatedHeight.
+            // Center within the first ROW_HEIGHT (48px):
+            bar.style.top = `${accumulatedHeight + (ROW_HEIGHT - 32)/2}px`;
             bar.style.height = '32px';
 
             // Add resize handles
@@ -363,14 +471,9 @@ function renderGantt() {
         }
     });
 
-    // Sync scroll
-    // But vertical scrolling needs to be synced if they scroll independently.
-    // In our design, task list and gantt scroll together vertically within flex container?
-    // Actually, it's better to let them scroll independently and sync them, or wrap them in one scroller.
-    // Let's implement vertical sync
-    syncScroll();
 }
 
+// Sync scroll
 function syncScroll() {
     taskListContainer.addEventListener('scroll', () => {
         ganttScrollArea.scrollTop = taskListContainer.scrollTop;
@@ -482,6 +585,8 @@ function addTask() {
         name: name,
         startDate: appState.projectStartDate,
         endDate: addWorkingDays(appState.projectStartDate, 2), // Default 3 working days duration (start + 2)
+        completed: false,
+        completedAt: null,
         subtasks: []
     };
 
@@ -499,87 +604,22 @@ function deleteTask(taskId) {
     }
 }
 
-// Subtask Management Logic
-function openSubtaskModal(taskId) {
-    currentEditingTaskId = taskId;
+// Task & Subtask Management Logic
+function addSubtaskInline(taskId, subtaskName) {
     const task = appState.tasks.find(t => t.id === taskId);
-    if (!task) return;
-
-    modalTaskTitle.textContent = `${task.name} のサブタスク`;
-    renderSubtaskList(task);
-
-    subtaskModal.classList.remove('hidden');
-    newSubtaskNameInput.focus();
-}
-
-function closeSubtaskModal() {
-    subtaskModal.classList.add('hidden');
-    currentEditingTaskId = null;
-    newSubtaskNameInput.value = '';
-}
-
-function renderSubtaskList(task) {
-    subtaskList.innerHTML = '';
-
-    if (!task.subtasks) {
-        task.subtasks = [];
-    }
-
-    task.subtasks.forEach(subtask => {
-        const li = document.createElement('li');
-        li.className = 'py-3 flex items-center justify-between';
-
-        const leftDiv = document.createElement('div');
-        leftDiv.className = 'flex items-center';
-
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'mr-3 h-4 w-4 text-blue-600 rounded';
-        checkbox.checked = subtask.completed;
-        checkbox.onchange = () => toggleSubtaskStatus(task.id, subtask.id, checkbox.checked);
-
-        const nameSpan = document.createElement('span');
-        nameSpan.textContent = subtask.name;
-        if (subtask.completed) {
-            nameSpan.className = 'line-through text-gray-500';
-        }
-
-        leftDiv.appendChild(checkbox);
-        leftDiv.appendChild(nameSpan);
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'text-red-500 text-sm hover:underline';
-        deleteBtn.textContent = '削除';
-        deleteBtn.onclick = () => deleteSubtask(task.id, subtask.id);
-
-        li.appendChild(leftDiv);
-        li.appendChild(deleteBtn);
-        subtaskList.appendChild(li);
-    });
-}
-
-function addSubtask() {
-    if (!currentEditingTaskId) return;
-    const name = newSubtaskNameInput.value.trim();
-    if (!name) return;
-
-    const task = appState.tasks.find(t => t.id === currentEditingTaskId);
     if (!task) return;
 
     if (!task.subtasks) task.subtasks = [];
 
     task.subtasks.push({
         id: 'sub_' + Date.now(),
-        name: name,
+        name: subtaskName,
         completed: false,
         completedAt: null
     });
 
     saveData();
-    renderSubtaskList(task);
-    updateProgressDisplay();
-    if (!viewBurnup.classList.contains('hidden')) renderBurnUpChart();
-    newSubtaskNameInput.value = '';
+    renderApp();
 }
 
 function deleteSubtask(taskId, subtaskId) {
@@ -588,9 +628,7 @@ function deleteSubtask(taskId, subtaskId) {
 
     task.subtasks = task.subtasks.filter(st => st.id !== subtaskId);
     saveData();
-    renderSubtaskList(task);
-    updateProgressDisplay();
-    if (!viewBurnup.classList.contains('hidden')) renderBurnUpChart();
+    renderApp();
 }
 
 function toggleSubtaskStatus(taskId, subtaskId, isCompleted) {
@@ -602,16 +640,28 @@ function toggleSubtaskStatus(taskId, subtaskId, isCompleted) {
 
     subtask.completed = isCompleted;
     if (isCompleted) {
-        // Record completion date as today, formatted as YYYY-MM-DD
         subtask.completedAt = formatDate(new Date());
     } else {
         subtask.completedAt = null;
     }
 
     saveData();
-    renderSubtaskList(task);
-    updateProgressDisplay();
-    if (!viewBurnup.classList.contains('hidden')) renderBurnUpChart();
+    renderApp();
+}
+
+function toggleTaskStatus(taskId, isCompleted) {
+    const task = appState.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    task.completed = isCompleted;
+    if (isCompleted) {
+        task.completedAt = formatDate(new Date());
+    } else {
+        task.completedAt = null;
+    }
+
+    saveData();
+    renderApp();
 }
 
 // Custom Holiday Management Logic
@@ -673,19 +723,6 @@ function deleteCustomHoliday(dateStr) {
 addTaskBtn.addEventListener('click', addTask);
 newTaskNameInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') addTask();
-});
-
-closeModalBtn.addEventListener('click', closeSubtaskModal);
-addSubtaskBtn.addEventListener('click', addSubtask);
-newSubtaskNameInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') addSubtask();
-});
-
-// Close modal when clicking outside
-subtaskModal.addEventListener('click', (e) => {
-    if (e.target === subtaskModal) {
-        closeSubtaskModal();
-    }
 });
 
 openHolidayModalBtn.addEventListener('click', openHolidayModal);
