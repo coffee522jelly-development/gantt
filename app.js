@@ -526,12 +526,6 @@ function renderGantt() {
             // Positioning within the grid row
             bar.style.gridRow = index + 2;
 
-            // Calculate top position dynamically based on accumulated row heights
-            let accumulatedHeight = HEADER_HEIGHT;
-            for (let i = 0; i < index; i++) {
-                accumulatedHeight += rowHeights[i];
-            }
-
             // Use absolute positioning relative to the container for the bar
             // so it can span across grid cells smoothly during drag
             bar.style.gridColumn = '1 / -1'; // Span full row to allow absolute positioning within it
@@ -540,9 +534,10 @@ function renderGantt() {
             bar.style.width = `${(endIndex - startIndex + 1) * GANTT_CELL_WIDTH}px`;
 
             // We want to center the 32px bar within the main row height (48px) of this task wrapper.
-            // The task wrapper height is rowHeights[index]. The top of the wrapper is accumulatedHeight.
-            // Center within the first ROW_HEIGHT (48px):
-            bar.style.top = `${accumulatedHeight + (ROW_HEIGHT - 32)/2}px`;
+            // By NOT specifying `top` and instead using `margin-top`, the absolutely positioned item
+            // stays relative to its grid row container (because grid-row is specified above).
+            // Center within the first ROW_HEIGHT (48px): 48 - 32 = 16 / 2 = 8px.
+            bar.style.marginTop = `${(ROW_HEIGHT - 32)/2}px`;
             bar.style.height = '32px';
 
             // Add resize handles

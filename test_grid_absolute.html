@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  .grid {
+    display: grid;
+    position: relative;
+    grid-template-rows: 50px 100px 50px;
+    width: 200px;
+    border: 1px solid black;
+  }
+  .item {
+    position: absolute;
+    grid-row: 2;
+    grid-column: 1 / -1;
+    top: 10px;
+    background: red;
+    height: 20px;
+    width: 100%;
+  }
+</style>
+</head>
+<body>
+  <div class="grid">
+    <div>1</div>
+    <div>2</div>
+    <div>3</div>
+    <div class="item">abs</div>
+  </div>
+</body>
+</html>
