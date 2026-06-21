@@ -31,6 +31,7 @@ const customHolidayModal = document.getElementById('custom-holiday-modal');
 const newCustomHolidayInput = document.getElementById('new-custom-holiday');
 const addCustomHolidayBtn = document.getElementById('add-custom-holiday-btn');
 const customHolidayList = document.getElementById('custom-holiday-list');
+const themeToggleBtn = document.getElementById('theme-toggle-btn');
 
 // Gantt Config
 const GANTT_CELL_WIDTH = 40; // px
@@ -197,6 +198,7 @@ function addWorkingDays(startDateStr, daysToAdd) {
 
 // Initialization
 async function init() {
+    initTheme();
     await fetchHolidays();
     loadData();
     setupProjectSettings();
@@ -205,6 +207,21 @@ async function init() {
     renderApp();
     console.log("App initialized.");
 }
+
+// Theme Logic
+function initTheme() {
+    const isDark = localStorage.getItem('ganttApp_theme') === 'dark';
+    if (isDark) {
+        document.documentElement.classList.add('dark');
+    }
+}
+
+themeToggleBtn.addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark');
+    const isDark = document.documentElement.classList.contains('dark');
+    localStorage.setItem('ganttApp_theme', isDark ? 'dark' : 'light');
+    renderApp(); // Re-render to update chart colors
+});
 
 function setupProjectSettings() {
     projectStartInput.addEventListener('change', (e) => {
@@ -258,12 +275,12 @@ function renderTaskList() {
     appState.tasks.forEach((task, index) => {
         // Main task container (includes main row and subtasks)
         const taskWrapper = document.createElement('div');
-        taskWrapper.className = 'border-b border-gray-200 bg-white task-wrapper';
+        taskWrapper.className = 'border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-[#202020] task-wrapper transition-colors';
         taskWrapper.dataset.id = task.id;
 
         // --- Main Task Row ---
         const mainRow = document.createElement('div');
-        mainRow.className = 'flex items-center justify-between px-4 hover:bg-gray-50 group';
+        mainRow.className = 'flex items-center justify-between px-4 hover:bg-gray-50 dark:hover:bg-[#2A2A2A] group transition-colors';
         mainRow.style.height = `${ROW_HEIGHT}px`;
 
         const dragHandle = document.createElement('span');
@@ -271,7 +288,7 @@ function renderTaskList() {
         dragHandle.innerHTML = '⋮⋮';
 
         const nameSpan = document.createElement('span');
-        nameSpan.className = 'truncate flex-1 font-medium';
+        nameSpan.className = 'truncate flex-1 font-medium dark:text-[#EBEBEB]';
         nameSpan.textContent = task.name;
 
         const nameContainer = document.createElement('div');
@@ -295,13 +312,13 @@ function renderTaskList() {
 
         // --- Subtasks List ---
         const subtasksContainer = document.createElement('div');
-        subtasksContainer.className = 'px-8 pb-2 bg-gray-50'; // Indented area for subtasks
+        subtasksContainer.className = 'px-8 pb-2 bg-gray-50 dark:bg-[#1A1A1A] transition-colors border-t border-dashed border-gray-200 dark:border-gray-700'; // Indented area for subtasks
 
         const subtaskListEl = document.createElement('ul');
         if (task.subtasks) {
             task.subtasks.forEach(subtask => {
                 const li = document.createElement('li');
-                li.className = 'py-1 flex items-center justify-between text-sm';
+                li.className = 'py-1 flex items-center justify-between text-sm dark:text-[#EBEBEB]';
 
                 const stLeft = document.createElement('div');
                 stLeft.className = 'flex items-center truncate';
@@ -315,7 +332,7 @@ function renderTaskList() {
                 const stName = document.createElement('span');
                 stName.textContent = subtask.name;
                 if (subtask.completed) {
-                    stName.classList.add('line-through', 'text-gray-500');
+                    stName.classList.add('line-through', 'text-gray-500', 'dark:text-gray-400');
                 }
 
                 stLeft.appendChild(stCheckbox);
@@ -324,7 +341,7 @@ function renderTaskList() {
                 if (subtask.completed && subtask.completedAt) {
                     const stDateInput = document.createElement('input');
                     stDateInput.type = 'date';
-                    stDateInput.className = 'text-xs border border-gray-300 rounded px-1 ml-2 text-gray-500 w-28';
+                    stDateInput.className = 'text-xs border border-gray-300 dark:border-gray-600 bg-transparent rounded px-1 ml-2 text-gray-500 dark:text-gray-400 w-28 dark:[color-scheme:dark]';
                     stDateInput.value = subtask.completedAt;
                     stDateInput.min = appState.projectStartDate;
                     stDateInput.max = appState.projectEndDate;
@@ -371,10 +388,10 @@ function renderTaskList() {
         const subtaskInput = document.createElement('input');
         subtaskInput.type = 'text';
         subtaskInput.placeholder = '新しいサブタスク';
-        subtaskInput.className = 'border border-gray-300 p-1 rounded flex-1 text-sm';
+        subtaskInput.className = 'bg-transparent border border-gray-300 dark:border-gray-700 p-1 rounded flex-1 text-sm dark:text-[#EBEBEB] focus:outline-none focus:border-gray-400 dark:focus:border-gray-500 transition-colors';
 
         const subtaskAddBtn = document.createElement('button');
-        subtaskAddBtn.className = 'bg-blue-500 hover:bg-blue-600 text-white font-bold px-2 rounded text-xs';
+        subtaskAddBtn.className = 'bg-white dark:bg-[#2F2F2F] hover:bg-gray-100 dark:hover:bg-[#3F3F3F] text-gray-800 dark:text-[#EBEBEB] border border-gray-300 dark:border-gray-700 font-medium px-2 rounded text-xs transition-colors';
         subtaskAddBtn.textContent = '追加';
 
         const handleAddSubtask = () => {
@@ -453,7 +470,7 @@ function renderGantt() {
         headerCell.textContent = `${d.getMonth()+1}/${day}`;
 
         if (!isWorkingDay(dateStr)) {
-            headerCell.classList.add('bg-red-50', 'text-red-600');
+            headerCell.classList.add('bg-red-50', 'dark:bg-red-900/20', 'text-red-600', 'dark:text-red-400');
         }
 
         ganttChartContainer.appendChild(headerCell);
@@ -865,6 +882,10 @@ function renderBurnUpChart() {
         burnupChartInstance.destroy();
     }
 
+    const isDark = document.documentElement.classList.contains('dark');
+    Chart.defaults.color = isDark ? '#EBEBEB' : '#37352f';
+    const gridColor = isDark ? '#2F2F2F' : '#E5E7EB';
+
     const ctx = burnupChartCanvas.getContext('2d');
     burnupChartInstance = new Chart(ctx, {
         type: 'line',
@@ -921,12 +942,18 @@ function renderBurnUpChart() {
                     },
                     ticks: {
                         stepSize: 1
+                    },
+                    grid: {
+                        color: gridColor
                     }
                 },
                 x: {
                     title: {
                         display: true,
                         text: '営業日'
+                    },
+                    grid: {
+                        color: gridColor
                     }
                 }
             }
@@ -937,7 +964,8 @@ function renderBurnUpChart() {
                 const {ctx} = chart;
                 ctx.save();
                 ctx.globalCompositeOperation = 'destination-over';
-                ctx.fillStyle = options.color || '#ffffff';
+                // Handle dark mode export explicitly
+                ctx.fillStyle = isDark ? '#191919' : (options.color || '#ffffff');
                 ctx.fillRect(0, 0, chart.width, chart.height);
                 ctx.restore();
             }
