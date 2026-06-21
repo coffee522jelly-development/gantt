@@ -164,6 +164,8 @@ async function init() {
     loadData();
     setupProjectSettings();
     setupTabs();
+    syncScroll();
+    renderApp();
     console.log("App initialized.");
 }
 
@@ -475,11 +477,12 @@ function renderGantt() {
 
 // Sync scroll
 function syncScroll() {
-    taskListContainer.addEventListener('scroll', () => {
-        ganttScrollArea.scrollTop = taskListContainer.scrollTop;
+    const taskListParent = taskListContainer.parentElement;
+    taskListParent.addEventListener('scroll', () => {
+        ganttScrollArea.scrollTop = taskListParent.scrollTop;
     });
     ganttScrollArea.addEventListener('scroll', () => {
-        taskListContainer.scrollTop = ganttScrollArea.scrollTop;
+        taskListParent.scrollTop = ganttScrollArea.scrollTop;
     });
 }
 
