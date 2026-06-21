@@ -4,6 +4,7 @@ let appState = {
     projectEndDate: null,
     tasks: [], // Array of task objects
     holidays: {}, // Object map: 'YYYY-MM-DD' -> 'Holiday Name'
+    customHolidays: [] // Array of 'YYYY-MM-DD' strings
 };
 
 // DOM Elements
@@ -29,6 +30,14 @@ const addSubtaskBtn = document.getElementById('add-subtask-btn');
 const subtaskList = document.getElementById('subtask-list');
 const projectProgressEl = document.getElementById('project-progress');
 
+// Custom Holiday DOM Elements
+const openHolidayModalBtn = document.getElementById('open-holiday-modal-btn');
+const closeHolidayModalBtn = document.getElementById('close-holiday-modal-btn');
+const customHolidayModal = document.getElementById('custom-holiday-modal');
+const newCustomHolidayInput = document.getElementById('new-custom-holiday');
+const addCustomHolidayBtn = document.getElementById('add-custom-holiday-btn');
+const customHolidayList = document.getElementById('custom-holiday-list');
+
 let currentEditingTaskId = null;
 
 // Gantt Config
@@ -41,7 +50,8 @@ function saveData() {
     const dataToSave = {
         projectStartDate: appState.projectStartDate,
         projectEndDate: appState.projectEndDate,
-        tasks: appState.tasks
+        tasks: appState.tasks,
+        customHolidays: appState.customHolidays
     };
     localStorage.setItem('ganttApp_data', JSON.stringify(dataToSave));
 }
@@ -54,6 +64,7 @@ function loadData() {
             appState.projectStartDate = parsedData.projectStartDate || null;
             appState.projectEndDate = parsedData.projectEndDate || null;
             appState.tasks = parsedData.tasks || [];
+            appState.customHolidays = parsedData.customHolidays || [];
 
             if (appState.projectStartDate) {
                 projectStartInput.value = appState.projectStartDate;
@@ -109,8 +120,10 @@ function isWorkingDay(dateStr) {
     const dayOfWeek = date.getDay();
     // 0 is Sunday, 6 is Saturday
     if (dayOfWeek === 0 || dayOfWeek === 6) return false;
-    // Check if it's a holiday
+    // Check if it's a public holiday
     if (appState.holidays[dateStr]) return false;
+    // Check if it's a custom holiday
+    if (appState.customHolidays.includes(dateStr)) return false;
 
     return true;
 }
@@ -601,6 +614,61 @@ function toggleSubtaskStatus(taskId, subtaskId, isCompleted) {
     if (!viewBurnup.classList.contains('hidden')) renderBurnUpChart();
 }
 
+// Custom Holiday Management Logic
+function openHolidayModal() {
+    renderHolidayList();
+    customHolidayModal.classList.remove('hidden');
+}
+
+function closeHolidayModal() {
+    customHolidayModal.classList.add('hidden');
+    newCustomHolidayInput.value = '';
+}
+
+function renderHolidayList() {
+    customHolidayList.innerHTML = '';
+
+    // Sort holidays chronologically
+    const sortedHolidays = [...appState.customHolidays].sort();
+
+    sortedHolidays.forEach(dateStr => {
+        const li = document.createElement('li');
+        li.className = 'py-3 flex items-center justify-between';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = dateStr;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'text-red-500 text-sm hover:underline';
+        deleteBtn.textContent = '削除';
+        deleteBtn.onclick = () => deleteCustomHoliday(dateStr);
+
+        li.appendChild(nameSpan);
+        li.appendChild(deleteBtn);
+        customHolidayList.appendChild(li);
+    });
+}
+
+function addCustomHoliday() {
+    const dateStr = newCustomHolidayInput.value;
+    if (!dateStr) return;
+
+    if (!appState.customHolidays.includes(dateStr)) {
+        appState.customHolidays.push(dateStr);
+        saveData();
+        renderHolidayList();
+        renderApp(); // Re-render to reflect new holidays on grid and burnup
+    }
+    newCustomHolidayInput.value = '';
+}
+
+function deleteCustomHoliday(dateStr) {
+    appState.customHolidays = appState.customHolidays.filter(d => d !== dateStr);
+    saveData();
+    renderHolidayList();
+    renderApp();
+}
+
 // Event Listeners setup
 addTaskBtn.addEventListener('click', addTask);
 newTaskNameInput.addEventListener('keypress', (e) => {
@@ -619,6 +687,17 @@ subtaskModal.addEventListener('click', (e) => {
         closeSubtaskModal();
     }
 });
+
+openHolidayModalBtn.addEventListener('click', openHolidayModal);
+closeHolidayModalBtn.addEventListener('click', closeHolidayModal);
+addCustomHolidayBtn.addEventListener('click', addCustomHoliday);
+
+customHolidayModal.addEventListener('click', (e) => {
+    if (e.target === customHolidayModal) {
+        closeHolidayModal();
+    }
+});
+
 
 // Export Chart Logic
 exportChartBtn.addEventListener('click', () => {
