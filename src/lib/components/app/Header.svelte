@@ -1,0 +1,123 @@
+<script lang="ts">
+    import { appState } from '$lib/store/appState';
+    import { Input } from '$lib/components/ui/input';
+    import { Button } from '$lib/components/ui/button';
+    import { Label } from '$lib/components/ui/label';
+    import { Moon, Sun } from 'lucide-svelte';
+    import { onMount } from 'svelte';
+    import { browser } from '$app/environment';
+
+    let progress = 0;
+
+    $: {
+        let total = 0;
+        let completed = 0;
+        $appState.tasks.forEach(t => {
+            if (t.subtasks) {
+                total += t.subtasks.length;
+                t.subtasks.forEach(s => {
+                    if (s.completed) completed++;
+                });
+            }
+        });
+        progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+    }
+
+    let isDark = false;
+    let accentColor = '#3b82f6';
+
+    onMount(() => {
+        isDark = document.documentElement.classList.contains('dark');
+        const storedColor = localStorage.getItem('ganttApp_accent_color');
+        if (storedColor) {
+            accentColor = storedColor;
+            document.documentElement.style.setProperty('--accent-color', accentColor);
+        }
+    });
+
+    function toggleTheme() {
+        isDark = !isDark;
+        if (isDark) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('ganttApp_theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('ganttApp_theme', 'light');
+        }
+    }
+
+    function handleColorChange(e: Event) {
+        const input = e.target as HTMLInputElement;
+        accentColor = input.value;
+        document.documentElement.style.setProperty('--accent-color', accentColor);
+        localStorage.setItem('ganttApp_accent_color', accentColor);
+        // Force refresh for chart by dispatching custom event if needed
+        if (browser) {
+            window.dispatchEvent(new Event('accent-color-changed'));
+        }
+    }
+</script>
+
+<svelte:head>
+    <script>
+        if (localStorage.getItem('ganttApp_theme') === 'dark' || (!('ganttApp_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        const storedColor = localStorage.getItem('ganttApp_accent_color');
+        if (storedColor) {
+            document.documentElement.style.setProperty('--accent-color', storedColor);
+        } else {
+            document.documentElement.style.setProperty('--accent-color', '#3b82f6');
+        }
+    </script>
+</svelte:head>
+
+<div class="h-14 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex items-center justify-between px-4 shrink-0 transition-colors">
+    <div class="flex items-center space-x-4">
+        <h1 class="text-lg font-bold tracking-tight">プロジェクト管理</h1>
+        <div class="text-xs font-semibold bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded">
+            進捗: {progress}%
+        </div>
+    </div>
+
+    <div class="flex items-center space-x-4 text-sm">
+        <div class="flex items-center rounded border border-gray-200 dark:border-zinc-700 overflow-hidden bg-white dark:bg-zinc-900">
+            <button onclick={toggleTheme} class="px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors border-r border-gray-200 dark:border-zinc-700 flex items-center justify-center">
+                {#if isDark}
+                    <Sun class="h-4 w-4" />
+                {:else}
+                    <Moon class="h-4 w-4" />
+                {/if}
+            </button>
+            <input
+                type="color"
+                value={accentColor}
+                oninput={handleColorChange}
+                class="w-8 h-8 p-0 border-0 cursor-pointer bg-transparent"
+                title="アクセントカラーを変更"
+            />
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <Label for="project-start" class="text-xs text-gray-500 font-medium">開始:</Label>
+            <Input
+                id="project-start"
+                type="date"
+                class="h-8 w-auto text-sm"
+                bind:value={$appState.projectStartDate}
+            />
+        </div>
+        <div class="flex items-center space-x-2">
+            <Label for="project-end" class="text-xs text-gray-500 font-medium">終了:</Label>
+            <Input
+                id="project-end"
+                type="date"
+                class="h-8 w-auto text-sm"
+                bind:value={$appState.projectEndDate}
+            />
+        </div>
+    </div>
+</div>
