@@ -119,6 +119,14 @@
                                     <span class="flex-1 truncate {subtask.completed ? 'line-through text-gray-400 dark:text-zinc-600' : 'text-gray-700 dark:text-zinc-300'}">
                                         {subtask.name}
                                     </span>
+                                    {#if subtask.completed && subtask.completedAt}
+                                        <input
+                                            type="date"
+                                            value={subtask.completedAt}
+                                            onchange={(e) => appState.updateSubtaskDate(task.id, subtask.id, e.target.value)}
+                                            class="ml-2 h-6 text-[10px] bg-transparent border border-gray-200 dark:border-zinc-700 rounded px-1 text-gray-500"
+                                        />
+                                    {/if}
                                     <button
                                         class="text-xs text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity ml-2"
                                         onclick={() => appState.deleteSubtask(task.id, subtask.id)}

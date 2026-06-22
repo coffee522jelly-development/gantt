@@ -152,6 +152,25 @@ function createAppState() {
                 })
             };
         }),
+        updateSubtaskDate: (taskId: string, subtaskId: string, dateStr: string) => update(state => {
+            return {
+                ...state,
+                tasks: state.tasks.map(t => {
+                    if (t.id === taskId) {
+                        return {
+                            ...t,
+                            subtasks: t.subtasks.map(s => {
+                                if (s.id === subtaskId) {
+                                    return { ...s, completedAt: dateStr };
+                                }
+                                return s;
+                            })
+                        };
+                    }
+                    return t;
+                })
+            };
+        }),
         addCustomHoliday: (dateStr: string) => update(state => {
              if (dateStr && !state.customHolidays.includes(dateStr)) {
                  return { ...state, customHolidays: [...state.customHolidays, dateStr] };

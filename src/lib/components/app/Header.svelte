@@ -4,6 +4,7 @@
     import { Button } from '$lib/components/ui/button';
     import { Label } from '$lib/components/ui/label';
     import { Moon, Sun } from 'lucide-svelte';
+    import HolidaySettings from './HolidaySettings.svelte';
     import { onMount } from 'svelte';
     import { browser } from '$app/environment';
 
@@ -119,5 +120,6 @@
                 bind:value={$appState.projectEndDate}
             />
         </div>
+        <HolidaySettings />
     </div>
 </div>

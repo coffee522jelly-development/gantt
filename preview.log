@@ -2,7 +2,7 @@
 > project@0.0.1 preview
 > vite preview --host 127.0.0.1
 
-1:24:32 PM [vite-plugin-svelte] The following packages have a svelte field in their package.json but no exports condition for svelte.
+2:08:22 PM [vite-plugin-svelte] The following packages have a svelte field in their package.json but no exports condition for svelte.
 
 radix-icons-svelte@1.2.1
 
