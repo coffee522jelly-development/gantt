@@ -990,8 +990,14 @@ function calculateBurnUpData() {
 
     workingDays.forEach((day, index) => {
         // Plan line
-        const idealPace = (totalSubtasksCount / (workingDays.length - 1 || 1)) * index;
-        planData.push(Math.round(idealPace * 10) / 10);
+        // Calculate idealPace correctly handling length - 1, and ensure float representation is linear
+        let idealPace = 0;
+        if (workingDays.length === 1) {
+            idealPace = totalSubtasksCount;
+        } else {
+            idealPace = (totalSubtasksCount / (workingDays.length - 1)) * index;
+        }
+        planData.push(idealPace);
 
         // Actual line
         // Count subtasks completed on or before this day

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<canvas id="myChart" width="400" height="400"></canvas>
+<script>
+const planData = [
+                    0, 0.23809523809523808,
+  0.47619047619047616,  0.7142857142857142,
+   0.9523809523809523,  1.1904761904761905,
+   1.4285714285714284,  1.6666666666666665,
+   1.9047619047619047,   2.142857142857143,
+    2.380952380952381,   2.619047619047619,
+   2.8571428571428568,   3.095238095238095,
+    3.333333333333333,   3.571428571428571,
+   3.8095238095238093,  4.0476190476190474,
+    4.285714285714286,   4.523809523809524,
+    4.761904761904762,                   5
+];
+const labels = planData.map((_, i) => i);
+new Chart(document.getElementById('myChart'), {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Plan',
+            data: planData,
+            borderColor: 'gray',
+            fill: false
+        }]
+    }
+});
+</script>
+</body>
+</html>
