@@ -138,7 +138,7 @@
     }
 </script>
 
-<div class="h-full flex flex-col relative bg-white dark:bg-zinc-950 rounded-lg border border-gray-200 dark:border-zinc-800 shadow-sm p-4">
+<div class="h-full flex flex-col relative bg-white dark:bg-zinc-950 rounded-lg border border-gray-200 dark:border-zinc-800 shadow-md p-4 transition-shadow">
     <div class="mb-4 flex justify-end">
         <Button variant="outline" size="sm" onclick={exportChart}>PNGで保存</Button>
     </div>

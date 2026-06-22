@@ -77,8 +77,8 @@
 
     <div class="flex flex-1 overflow-hidden">
         <!-- Task List Sidebar -->
-        <div class="w-1/4 min-w-[250px] border-r border-gray-200 dark:border-zinc-800 flex flex-col bg-white dark:bg-zinc-950 overflow-y-auto">
-            <div class="h-8 border-b border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900 flex items-center px-4 font-medium text-xs text-gray-500 sticky top-0 z-10 shrink-0">
+        <div class="w-1/4 min-w-[250px] border-r border-gray-200 dark:border-zinc-800 flex flex-col bg-white dark:bg-zinc-950 overflow-y-auto shadow-[2px_0_10px_-3px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_10px_-3px_rgba(0,0,0,0.5)] z-10 relative">
+            <div class="h-8 border-b border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900 flex items-center px-4 font-medium text-xs text-gray-500 sticky top-0 z-10 shrink-0 shadow-sm">
                 タスク
             </div>
 
@@ -181,9 +181,9 @@
                             <!-- svelte-ignore a11y_no_static_element_interactions -->
                             <div
                                 use:setupBarInteractions={{ taskId: task.id, dates, cellWidth: GANTT_CELL_WIDTH }}
-                                class="absolute h-8 flex items-center px-2 overflow-hidden text-white text-xs font-semibold rounded cursor-pointer transition-all hover:brightness-110 shadow-sm group/bar"
+                                class="absolute h-8 flex items-center px-2 overflow-hidden text-white text-xs font-semibold rounded cursor-pointer transition-all hover:brightness-110 shadow-md group/bar ring-1 ring-black/10 dark:ring-white/10"
                                 style="
-                                    background-color: var(--accent-color, #3b82f6);
+                                    background: linear-gradient(135deg, var(--accent-color, #3b82f6) 0%, color-mix(in srgb, var(--accent-color, #3b82f6) 80%, black 20%) 100%);
                                     grid-row: {tIndex + 2};
                                     grid-column: 1 / -1;
                                     left: {startIdx * GANTT_CELL_WIDTH}px;

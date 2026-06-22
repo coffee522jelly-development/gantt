@@ -76,7 +76,7 @@
     </script>
 </svelte:head>
 
-<div class="h-14 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex items-center justify-between px-4 shrink-0 transition-colors">
+<div class="h-14 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex items-center justify-between px-4 shrink-0 transition-colors shadow-sm z-20 relative">
     <div class="flex items-center space-x-4">
         <h1 class="text-lg font-bold tracking-tight">プロジェクト管理</h1>
         <div class="text-xs font-semibold bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded">
