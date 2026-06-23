@@ -3,7 +3,7 @@
     import { Input } from '$lib/components/ui/input';
     import { Button } from '$lib/components/ui/button';
     import { Label } from '$lib/components/ui/label';
-    import { Moon, Sun } from 'lucide-svelte';
+    import { Moon, Sun, Flame, AlignLeft } from 'lucide-svelte';
     import HolidaySettings from './HolidaySettings.svelte';
     import { onMount } from 'svelte';
     import { browser } from '$app/environment';
@@ -85,8 +85,28 @@
     </div>
 
     <div class="flex items-center space-x-4 text-sm">
+        <!-- View Toggle Buttons -->
+        <div class="flex items-center rounded border border-gray-200 dark:border-zinc-700 overflow-hidden bg-white dark:bg-zinc-900 mr-2">
+            <button
+                class="px-3 py-1.5 transition-colors border-r border-gray-200 dark:border-zinc-700 flex items-center justify-center gap-1.5 font-medium {$appState.currentView === 'gantt' ? 'bg-gray-100 dark:bg-zinc-800 text-blue-600 dark:text-blue-400' : 'hover:bg-gray-50 dark:hover:bg-zinc-800/50 text-gray-500'}"
+                onclick={() => appState.setView('gantt')}
+                title="ガントチャート"
+            >
+                <AlignLeft class="h-4 w-4" />
+                <span class="text-xs hidden sm:inline">ガント</span>
+            </button>
+            <button
+                class="px-3 py-1.5 transition-colors flex items-center justify-center gap-1.5 font-medium {$appState.currentView === 'burnup' ? 'bg-gray-100 dark:bg-zinc-800 text-orange-500 dark:text-orange-400' : 'hover:bg-gray-50 dark:hover:bg-zinc-800/50 text-gray-500'}"
+                onclick={() => appState.setView('burnup')}
+                title="バーンアップチャート"
+            >
+                <Flame class="h-4 w-4" />
+                <span class="text-xs hidden sm:inline">バーンアップ</span>
+            </button>
+        </div>
+
         <div class="flex items-center rounded border border-gray-200 dark:border-zinc-700 overflow-hidden bg-white dark:bg-zinc-900">
-            <button onclick={toggleTheme} class="px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors border-r border-gray-200 dark:border-zinc-700 flex items-center justify-center">
+            <button onclick={toggleTheme} class="px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors border-r border-gray-200 dark:border-zinc-700 flex items-center justify-center" title="テーマ切り替え">
                 {#if isDark}
                     <Sun class="h-4 w-4" />
                 {:else}

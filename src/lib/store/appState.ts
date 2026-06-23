@@ -25,6 +25,7 @@ export type AppState = {
     tasks: Task[];
     holidays: Record<string, string>;
     customHolidays: string[];
+    currentView: 'gantt' | 'burnup';
 };
 
 const initialAppState: AppState = {
@@ -32,7 +33,8 @@ const initialAppState: AppState = {
     projectEndDate: null,
     tasks: [],
     holidays: {},
-    customHolidays: []
+    customHolidays: [],
+    currentView: 'gantt'
 };
 
 // Create a custom store that syncs with localStorage
@@ -180,7 +182,8 @@ function createAppState() {
         removeCustomHoliday: (dateStr: string) => update(state => {
              return { ...state, customHolidays: state.customHolidays.filter(d => d !== dateStr) };
         }),
-        setHolidays: (holidays: Record<string, string>) => update(state => ({ ...state, holidays }))
+        setHolidays: (holidays: Record<string, string>) => update(state => ({ ...state, holidays })),
+        setView: (view: 'gantt' | 'burnup') => update(state => ({ ...state, currentView: view }))
     };
 }
 
