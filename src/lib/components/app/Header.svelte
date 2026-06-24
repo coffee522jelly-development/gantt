@@ -4,7 +4,7 @@
     import { Button } from '$lib/components/ui/button';
     import { Label } from '$lib/components/ui/label';
     import { Moon, Sun, Flame, AlignLeft } from 'lucide-svelte';
-    import HolidaySettings from './HolidaySettings.svelte';
+    import ProjectSettings from './ProjectSettings.svelte';
     import { onMount } from 'svelte';
     import { browser } from '$app/environment';
 
@@ -106,40 +106,22 @@
         </div>
 
         <div class="flex items-center rounded border border-gray-200 dark:border-zinc-700 overflow-hidden bg-white dark:bg-zinc-900">
-            <button onclick={toggleTheme} class="px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors border-r border-gray-200 dark:border-zinc-700 flex items-center justify-center" title="テーマ切り替え">
+            <input
+                type="color"
+                value={accentColor}
+                oninput={handleColorChange}
+                class="w-8 h-8 p-0 border-0 border-r border-gray-200 dark:border-zinc-700 cursor-pointer bg-transparent block"
+                title="アクセントカラーを変更"
+            />
+            <button onclick={toggleTheme} class="px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center" title="テーマ切り替え">
                 {#if isDark}
                     <Sun class="h-4 w-4" />
                 {:else}
                     <Moon class="h-4 w-4" />
                 {/if}
             </button>
-            <input
-                type="color"
-                value={accentColor}
-                oninput={handleColorChange}
-                class="w-8 h-8 p-0 border-0 cursor-pointer bg-transparent"
-                title="アクセントカラーを変更"
-            />
         </div>
 
-        <div class="flex items-center space-x-2">
-            <Label for="project-start" class="text-xs text-gray-500 font-medium">開始:</Label>
-            <Input
-                id="project-start"
-                type="date"
-                class="h-8 w-auto text-sm"
-                bind:value={$appState.projectStartDate}
-            />
-        </div>
-        <div class="flex items-center space-x-2">
-            <Label for="project-end" class="text-xs text-gray-500 font-medium">終了:</Label>
-            <Input
-                id="project-end"
-                type="date"
-                class="h-8 w-auto text-sm"
-                bind:value={$appState.projectEndDate}
-            />
-        </div>
-        <HolidaySettings />
+        <ProjectSettings />
     </div>
 </div>
