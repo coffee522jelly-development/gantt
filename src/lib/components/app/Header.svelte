@@ -5,6 +5,7 @@
     import { Label } from '$lib/components/ui/label';
     import { Moon, Sun, Flame, AlignLeft } from 'lucide-svelte';
     import ProjectSettings from './ProjectSettings.svelte';
+    import FileMenu from './FileMenu.svelte';
     import { onMount } from 'svelte';
     import { browser } from '$app/environment';
 
@@ -78,7 +79,8 @@
 
 <div class="h-14 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex items-center justify-between px-4 shrink-0 transition-colors shadow-sm z-20 relative">
     <div class="flex items-center space-x-4">
-        <h1 class="text-lg font-bold tracking-tight">プロジェクト管理</h1>
+        <h1 class="text-lg font-bold tracking-tight mr-2">{$appState.projectName || 'プロジェクト管理'}</h1>
+        <FileMenu />
         <div class="text-xs font-semibold bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded">
             進捗: {progress}%
         </div>

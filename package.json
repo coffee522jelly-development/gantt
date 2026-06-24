@@ -32,6 +32,8 @@
 	},
 	"dependencies": {
 		"@tailwindcss/vite": "^4.3.1",
+		"@tauri-apps/plugin-dialog": "^2.0.0-rc.0",
+		"@tauri-apps/plugin-fs": "^2.0.0-rc.0",
 		"bits-ui": "^2.18.1",
 		"chart.js": "^4.5.1",
 		"clsx": "^2.1.1",

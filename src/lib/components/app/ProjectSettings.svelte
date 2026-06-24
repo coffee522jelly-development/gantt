@@ -19,9 +19,11 @@
 
 <Dialog>
     <DialogTrigger>
-        <button class="px-2 py-1.5 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors border-r border-gray-200 dark:border-zinc-700 flex items-center justify-center text-gray-600 dark:text-gray-300" title="プロジェクト設定">
-            <Settings class="h-4 w-4" />
-        </button>
+        {#snippet child({ props })}
+            <Button {...props} variant="ghost" class="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors rounded-none border-r border-gray-200 dark:border-zinc-700 flex items-center justify-center text-gray-600 dark:text-gray-300" title="プロジェクト設定">
+                <Settings class="h-4 w-4" />
+            </Button>
+        {/snippet}
     </DialogTrigger>
     <DialogContent class="sm:max-w-[425px] bg-white dark:bg-zinc-950">
         <DialogHeader>
@@ -29,6 +31,17 @@
         </DialogHeader>
 
         <div class="py-4 space-y-6">
+            <!-- プロジェクト名 -->
+            <div class="space-y-2">
+                <Label for="project-name" class="text-xs text-gray-500 font-medium">プロジェクト名</Label>
+                <Input
+                    id="project-name"
+                    type="text"
+                    class="text-sm"
+                    bind:value={$appState.projectName}
+                />
+            </div>
+
             <!-- プロジェクト期間 -->
             <div class="space-y-4">
                 <h4 class="text-sm font-medium leading-none">期間設定</h4>

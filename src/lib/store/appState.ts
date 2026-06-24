@@ -20,6 +20,7 @@ export type Task = {
 };
 
 export type AppState = {
+    projectName: string;
     projectStartDate: string | null;
     projectEndDate: string | null;
     tasks: Task[];
@@ -29,6 +30,7 @@ export type AppState = {
 };
 
 const initialAppState: AppState = {
+    projectName: '無題のプロジェクト',
     projectStartDate: null,
     projectEndDate: null,
     tasks: [],
@@ -47,6 +49,7 @@ function createAppState() {
             try {
                 const parsed = JSON.parse(stored);
                 // Ensure new fields exist for backward compatibility
+                if (!parsed.projectName) parsed.projectName = "無題のプロジェクト";
                 parsed.tasks.forEach((t: Task) => {
                     if (!t.tags) t.tags = [];
                     if (!t.notes) t.notes = "";
