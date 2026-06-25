@@ -1,0 +1,130 @@
+{
+  "projectName": "ウェブサイトリニューアル",
+  "projectStartDate": "2026-06-01",
+  "projectEndDate": "2026-06-30",
+  "tasks": [
+    {
+      "id": "task_1",
+      "name": "要件定義とデザイン",
+      "startDate": "2026-06-01",
+      "endDate": "2026-06-09",
+      "tags": ["Design", "Planning"],
+      "notes": "既存サイトの課題を整理し、新しいデザインカンプを作成する。",
+      "subtasks": [
+        {
+          "id": "sub_1_1",
+          "name": "キックオフミーティング",
+          "completed": true,
+          "completedAt": "2026-06-01"
+        },
+        {
+          "id": "sub_1_2",
+          "name": "競合サイト調査",
+          "completed": true,
+          "completedAt": "2026-06-02"
+        },
+        {
+          "id": "sub_1_3",
+          "name": "ワイヤーフレーム作成",
+          "completed": true,
+          "completedAt": "2026-06-04"
+        },
+        {
+          "id": "sub_1_4",
+          "name": "デザインカンプ作成",
+          "completed": true,
+          "completedAt": "2026-06-08"
+        },
+        {
+          "id": "sub_1_5",
+          "name": "デザインレビューと修正",
+          "completed": true,
+          "completedAt": "2026-06-09"
+        }
+      ]
+    },
+    {
+      "id": "task_2",
+      "name": "フロントエンド開発",
+      "startDate": "2026-06-10",
+      "endDate": "2026-06-22",
+      "tags": ["Development", "Frontend"],
+      "notes": "SvelteKitとTailwind CSSを使用してUIを実装する。",
+      "subtasks": [
+        {
+          "id": "sub_2_1",
+          "name": "プロジェクトのセットアップ",
+          "completed": true,
+          "completedAt": "2026-06-10"
+        },
+        {
+          "id": "sub_2_2",
+          "name": "共通コンポーネントの実装",
+          "completed": true,
+          "completedAt": "2026-06-12"
+        },
+        {
+          "id": "sub_2_3",
+          "name": "トップページのコーディング",
+          "completed": true,
+          "completedAt": "2026-06-16"
+        },
+        {
+          "id": "sub_2_4",
+          "name": "下層ページのコーディング",
+          "completed": false,
+          "completedAt": null
+        },
+        {
+          "id": "sub_2_5",
+          "name": "アニメーションの追加",
+          "completed": false,
+          "completedAt": null
+        }
+      ]
+    },
+    {
+      "id": "task_3",
+      "name": "テストと公開",
+      "startDate": "2026-06-23",
+      "endDate": "2026-06-30",
+      "tags": ["QA", "Release"],
+      "notes": "全ブラウザでのテストを実施し、本番環境へデプロイする。",
+      "subtasks": [
+        {
+          "id": "sub_3_1",
+          "name": "クロスブラウザテスト",
+          "completed": false,
+          "completedAt": null
+        },
+        {
+          "id": "sub_3_2",
+          "name": "パフォーマンステスト",
+          "completed": false,
+          "completedAt": null
+        },
+        {
+          "id": "sub_3_3",
+          "name": "バグ修正",
+          "completed": false,
+          "completedAt": null
+        },
+        {
+          "id": "sub_3_4",
+          "name": "本番環境の構築",
+          "completed": false,
+          "completedAt": null
+        },
+        {
+          "id": "sub_3_5",
+          "name": "最終確認と公開作業",
+          "completed": false,
+          "completedAt": null
+        }
+      ]
+    }
+  ],
+  "holidays": {},
+  "customHolidays": [],
+  "currentView": "gantt"
+}
