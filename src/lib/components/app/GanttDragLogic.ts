@@ -2,7 +2,7 @@ import { appState } from '$lib/store/appState';
 import { getDatesInRange } from '$lib/date';
 import { get } from 'svelte/store';
 
-export function setupBarInteractions(node: HTMLElement, { taskId, dates, cellWidth }: { taskId: string, dates: string[], cellWidth: number }) {
+export function setupBarInteractions(node: HTMLElement, { taskId, subtaskId, dates, cellWidth }: { taskId: string, subtaskId?: string, dates: string[], cellWidth: number }) {
     let isDragging = false;
     let isResizingLeft = false;
     let isResizingRight = false;
@@ -67,14 +67,27 @@ export function setupBarInteractions(node: HTMLElement, { taskId, dates, cellWid
             const newEnd = dates[endIndex];
 
             // Dispatch update to store
-            appState.updateTask(taskId, { startDate: newStart, endDate: newEnd });
+            if (subtaskId) {
+                appState.updateSubtaskPeriod(taskId, subtaskId, { startDate: newStart, endDate: newEnd });
+            } else {
+                appState.updateTask(taskId, { startDate: newStart, endDate: newEnd });
+            }
         } else {
             // Revert visually if out of bounds (Svelte reactivity will naturally fix it on next render, but just in case)
             const state = get(appState);
             const task = state.tasks.find(t => t.id === taskId);
             if (task) {
-                 const oStart = dates.indexOf(task.startDate || '');
-                 const oEnd = dates.indexOf(task.endDate || '');
+                 let oStart = -1, oEnd = -1;
+                 if (subtaskId) {
+                     const subtask = task.subtasks.find(s => s.id === subtaskId);
+                     if (subtask) {
+                         oStart = dates.indexOf(subtask.startDate || '');
+                         oEnd = dates.indexOf(subtask.endDate || '');
+                     }
+                 } else {
+                     oStart = dates.indexOf(task.startDate || '');
+                     oEnd = dates.indexOf(task.endDate || '');
+                 }
                  if(oStart !== -1 && oEnd !== -1) {
                      node.style.left = `${oStart * cellWidth}px`;
                      node.style.width = `${(oEnd - oStart + 1) * cellWidth}px`;

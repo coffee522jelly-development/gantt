@@ -5,6 +5,8 @@ import { getWorkingDays, formatDate, getDatesInRange } from '$lib/date';
 export type SubTask = {
     id: string;
     name: string;
+    startDate: string | null;
+    endDate: string | null;
     completed: boolean;
     completedAt: string | null;
 };
@@ -53,6 +55,12 @@ function createAppState() {
                 parsed.tasks.forEach((t: Task) => {
                     if (!t.tags) t.tags = [];
                     if (!t.notes) t.notes = "";
+                    if (t.subtasks) {
+                        t.subtasks.forEach(s => {
+                            if (s.startDate === undefined) s.startDate = null;
+                            if (s.endDate === undefined) s.endDate = null;
+                        });
+                    }
                 });
                 set(parsed);
             } catch (e) {
@@ -101,17 +109,38 @@ function createAppState() {
         }),
         reorderTasks: (newTasks: Task[]) => update(state => ({ ...state, tasks: newTasks })),
         addSubtask: (taskId: string, name: string) => update(state => {
-            const newSubtask: SubTask = {
-                id: 'sub_' + Date.now(),
-                name: name.trim() || 'Untitled Subtask',
-                completed: false,
-                completedAt: null
-            };
             return {
                 ...state,
                 tasks: state.tasks.map(t => {
                     if (t.id === taskId) {
+                        const newSubtask: SubTask = {
+                            id: 'sub_' + Date.now(),
+                            name: name.trim() || 'Untitled Subtask',
+                            startDate: t.startDate, // Default to parent task's start date
+                            endDate: t.endDate,     // Default to parent task's end date
+                            completed: false,
+                            completedAt: null
+                        };
                         return { ...t, subtasks: [...t.subtasks, newSubtask] };
+                    }
+                    return t;
+                })
+            };
+        }),
+        updateSubtaskPeriod: (taskId: string, subtaskId: string, payload: Partial<SubTask>) => update(state => {
+            return {
+                ...state,
+                tasks: state.tasks.map(t => {
+                    if (t.id === taskId) {
+                        return {
+                            ...t,
+                            subtasks: t.subtasks.map(s => {
+                                if (s.id === subtaskId) {
+                                    return { ...s, ...payload };
+                                }
+                                return s;
+                            })
+                        };
                     }
                     return t;
                 })

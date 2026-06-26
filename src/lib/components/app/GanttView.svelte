@@ -77,7 +77,7 @@
 
     <div class="flex flex-1 overflow-hidden">
         <!-- Task List Sidebar -->
-        <div class="w-1/4 min-w-[250px] border-r border-gray-200 dark:border-zinc-800 flex flex-col bg-white dark:bg-zinc-950 overflow-y-auto shadow-[2px_0_10px_-3px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_10px_-3px_rgba(0,0,0,0.5)] z-10 relative">
+        <div class="w-1/4 min-w-[350px] border-r border-gray-200 dark:border-zinc-800 flex flex-col bg-white dark:bg-zinc-950 overflow-y-auto shadow-[2px_0_10px_-3px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_10px_-3px_rgba(0,0,0,0.5)] z-10 relative">
             <div class="h-8 border-b border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900 flex items-center px-4 font-medium text-xs text-gray-500 sticky top-0 z-10 shrink-0 shadow-sm">
                 タスク
             </div>
@@ -109,26 +109,42 @@
 
                         {#if task.subtasks}
                             {#each task.subtasks as subtask (subtask.id)}
-                                <div class="flex items-center pl-10 pr-4 py-1.5 border-t border-dashed border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/50 group text-sm">
+                                <div class="flex items-center pl-10 pr-4 py-1.5 h-10 border-t border-dashed border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/50 group text-sm shrink-0">
                                     <input
                                         type="checkbox"
                                         checked={subtask.completed}
                                         onchange={() => appState.toggleSubtask(task.id, subtask.id)}
                                         class="mr-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500 bg-white dark:bg-zinc-800 h-3.5 w-3.5 cursor-pointer accent-[var(--accent-color)]"
                                     />
-                                    <span class="flex-1 truncate {subtask.completed ? 'line-through text-gray-400 dark:text-zinc-600' : 'text-gray-700 dark:text-zinc-300'}">
+                                    <span class="flex-1 truncate min-w-[80px] {subtask.completed ? 'line-through text-gray-400 dark:text-zinc-600' : 'text-gray-700 dark:text-zinc-300'}" title={subtask.name}>
                                         {subtask.name}
                                     </span>
+                                    <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2 bg-white dark:bg-zinc-900 rounded p-0.5 border border-gray-200 dark:border-zinc-700">
+                                        <input
+                                            type="date"
+                                            value={subtask.startDate || ''}
+                                            onchange={(e) => appState.updateSubtaskPeriod(task.id, subtask.id, { startDate: e.target.value || null })}
+                                            class="h-5 text-[9px] bg-transparent outline-none text-gray-500 w-[85px]"
+                                        />
+                                        <span class="text-gray-400 text-[10px]">-</span>
+                                        <input
+                                            type="date"
+                                            value={subtask.endDate || ''}
+                                            onchange={(e) => appState.updateSubtaskPeriod(task.id, subtask.id, { endDate: e.target.value || null })}
+                                            class="h-5 text-[9px] bg-transparent outline-none text-gray-500 w-[85px]"
+                                        />
+                                    </div>
                                     {#if subtask.completed && subtask.completedAt}
                                         <input
                                             type="date"
                                             value={subtask.completedAt}
                                             onchange={(e) => appState.updateSubtaskDate(task.id, subtask.id, e.target.value)}
-                                            class="ml-2 h-6 text-[10px] bg-transparent border border-gray-200 dark:border-zinc-700 rounded px-1 text-gray-500"
+                                            class="ml-2 h-6 text-[10px] bg-transparent border border-gray-200 dark:border-zinc-700 rounded px-1 text-gray-500 w-[95px]"
+                                            title="完了日"
                                         />
                                     {/if}
                                     <button
-                                        class="text-xs text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity ml-2"
+                                        class="text-xs text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity ml-2 shrink-0"
                                         onclick={() => appState.deleteSubtask(task.id, subtask.id)}
                                     >
                                         削除
@@ -174,6 +190,7 @@
 
                     <!-- Bars -->
                     {#each $appState.tasks as task, tIndex}
+                        <!-- Main Task Bar -->
                         {@const startIdx = dates.indexOf(task.startDate || '')}
                         {@const endIdx = dates.indexOf(task.endDate || '')}
 
@@ -189,6 +206,7 @@
                                     left: {startIdx * GANTT_CELL_WIDTH}px;
                                     width: {(endIdx - startIdx + 1) * GANTT_CELL_WIDTH}px;
                                     margin-top: 8px;
+                                    z-index: 5;
                                 "
                                 ondblclick={(e) => { e.stopPropagation(); openDetail(task.id); }}
                             >
@@ -196,6 +214,36 @@
                                 <span class="truncate relative z-0">{task.name}</span>
                                 <div class="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize resize-right hover:bg-white/30 transition-colors z-10 hidden group-hover/bar:block"></div>
                             </div>
+                        {/if}
+
+                        <!-- Subtask Bars -->
+                        {#if task.subtasks}
+                            {#each task.subtasks as subtask, sIndex}
+                                {@const sStartIdx = dates.indexOf(subtask.startDate || '')}
+                                {@const sEndIdx = dates.indexOf(subtask.endDate || '')}
+
+                                {#if sStartIdx !== -1 && sEndIdx !== -1 && sStartIdx <= sEndIdx}
+                                    <!-- svelte-ignore a11y_no_static_element_interactions -->
+                                    <div
+                                        use:setupBarInteractions={{ taskId: task.id, subtaskId: subtask.id, dates, cellWidth: GANTT_CELL_WIDTH }}
+                                        class="absolute h-5 flex items-center px-2 overflow-hidden text-xs rounded cursor-pointer transition-all hover:brightness-110 shadow-sm group/subbar ring-1 ring-black/5 dark:ring-white/5 {subtask.completed ? 'opacity-60 grayscale' : 'opacity-90'}"
+                                        style="
+                                            background-color: color-mix(in srgb, var(--accent-color, #3b82f6) 30%, transparent);
+                                            color: color-mix(in srgb, var(--accent-color, #3b82f6) 80%, black);
+                                            grid-row: {tIndex + 2};
+                                            grid-column: 1 / -1;
+                                            left: {sStartIdx * GANTT_CELL_WIDTH}px;
+                                            width: {(sEndIdx - sStartIdx + 1) * GANTT_CELL_WIDTH}px;
+                                            margin-top: {48 + (sIndex * 40) + 10}px;
+                                            z-index: 4;
+                                        "
+                                    >
+                                        <div class="absolute left-0 top-0 bottom-0 w-2 cursor-col-resize resize-left hover:bg-black/10 dark:hover:bg-white/10 transition-colors z-10 hidden group-hover/subbar:block"></div>
+                                        <span class="truncate relative z-0 {subtask.completed ? 'line-through' : ''}">{subtask.name}</span>
+                                        <div class="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize resize-right hover:bg-black/10 dark:hover:bg-white/10 transition-colors z-10 hidden group-hover/subbar:block"></div>
+                                    </div>
+                                {/if}
+                            {/each}
                         {/if}
                     {/each}
                 </div>
