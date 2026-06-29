@@ -8,38 +8,51 @@
       "name": "要件定義とデザイン",
       "startDate": "2026-06-01",
       "endDate": "2026-06-09",
-      "tags": ["Design", "Planning"],
+      "tags": [
+        "Design",
+        "Planning"
+      ],
       "notes": "既存サイトの課題を整理し、新しいデザインカンプを作成する。",
       "subtasks": [
         {
           "id": "sub_1_1",
           "name": "キックオフミーティング",
           "completed": true,
-          "completedAt": "2026-06-01"
+          "completedAt": "2026-06-01",
+          "startDate": "2026-06-01",
+          "endDate": "2026-06-01"
         },
         {
           "id": "sub_1_2",
           "name": "競合サイト調査",
           "completed": true,
-          "completedAt": "2026-06-02"
+          "completedAt": "2026-06-02",
+          "startDate": "2026-06-02",
+          "endDate": "2026-06-02"
         },
         {
           "id": "sub_1_3",
           "name": "ワイヤーフレーム作成",
           "completed": true,
-          "completedAt": "2026-06-04"
+          "completedAt": "2026-06-04",
+          "startDate": "2026-06-03",
+          "endDate": "2026-06-04"
         },
         {
           "id": "sub_1_4",
           "name": "デザインカンプ作成",
           "completed": true,
-          "completedAt": "2026-06-08"
+          "completedAt": "2026-06-08",
+          "startDate": "2026-06-05",
+          "endDate": "2026-06-08"
         },
         {
           "id": "sub_1_5",
           "name": "デザインレビューと修正",
           "completed": true,
-          "completedAt": "2026-06-09"
+          "completedAt": "2026-06-09",
+          "startDate": "2026-06-09",
+          "endDate": "2026-06-09"
         }
       ]
     },
@@ -48,7 +61,10 @@
       "name": "フロントエンド開発",
       "startDate": "2026-06-10",
       "endDate": "2026-06-22",
-      "tags": ["Development", "Frontend"],
+      "tags": [
+        "Development",
+        "Frontend"
+      ],
       "notes": "SvelteKitとTailwind CSSを使用してUIを実装する。",
       "subtasks": [
         {
@@ -88,7 +104,10 @@
       "name": "テストと公開",
       "startDate": "2026-06-23",
       "endDate": "2026-06-30",
-      "tags": ["QA", "Release"],
+      "tags": [
+        "QA",
+        "Release"
+      ],
       "notes": "全ブラウザでのテストを実施し、本番環境へデプロイする。",
       "subtasks": [
         {
