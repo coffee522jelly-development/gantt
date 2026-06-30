@@ -132,14 +132,30 @@ function createAppState() {
                 ...state,
                 tasks: state.tasks.map(t => {
                     if (t.id === taskId) {
+                        let newParentStart = t.startDate;
+                        let newParentEnd = t.endDate;
+
+                        const updatedSubtasks = t.subtasks.map(s => {
+                            if (s.id === subtaskId) {
+                                const updatedSub = { ...s, ...payload };
+                                // Expand parent start date if needed
+                                if (updatedSub.startDate && (!newParentStart || updatedSub.startDate < newParentStart)) {
+                                    newParentStart = updatedSub.startDate;
+                                }
+                                // Expand parent end date if needed
+                                if (updatedSub.endDate && (!newParentEnd || updatedSub.endDate > newParentEnd)) {
+                                    newParentEnd = updatedSub.endDate;
+                                }
+                                return updatedSub;
+                            }
+                            return s;
+                        });
+
                         return {
                             ...t,
-                            subtasks: t.subtasks.map(s => {
-                                if (s.id === subtaskId) {
-                                    return { ...s, ...payload };
-                                }
-                                return s;
-                            })
+                            startDate: newParentStart,
+                            endDate: newParentEnd,
+                            subtasks: updatedSubtasks
                         };
                     }
                     return t;
