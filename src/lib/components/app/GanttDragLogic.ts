@@ -2,7 +2,8 @@ import { appState } from '$lib/store/appState';
 import { getDatesInRange } from '$lib/date';
 import { get } from 'svelte/store';
 
-export function setupBarInteractions(node: HTMLElement, { taskId, subtaskId, dates, cellWidth }: { taskId: string, subtaskId?: string, dates: string[], cellWidth: number }) {
+export function setupBarInteractions(node: HTMLElement, params: { taskId: string, subtaskId?: string, dates: string[], cellWidth: number }) {
+    let currentParams = params;
     let isDragging = false;
     let isResizingLeft = false;
     let isResizingRight = false;
@@ -38,13 +39,13 @@ export function setupBarInteractions(node: HTMLElement, { taskId, subtaskId, dat
         } else if (isResizingLeft) {
             let newLeft = initialLeft + dx;
             let newWidth = initialWidth - dx;
-            if (newWidth >= cellWidth && newLeft >= 0) {
+            if (newWidth >= currentParams.cellWidth && newLeft >= 0) {
                 node.style.left = `${newLeft}px`;
                 node.style.width = `${newWidth}px`;
             }
         } else if (isResizingRight) {
             let newWidth = initialWidth + dx;
-            if (newWidth >= cellWidth) {
+            if (newWidth >= currentParams.cellWidth) {
                 node.style.width = `${newWidth}px`;
             }
         }
@@ -58,39 +59,39 @@ export function setupBarInteractions(node: HTMLElement, { taskId, subtaskId, dat
         const finalLeft = parseInt(node.style.left, 10);
         const finalWidth = parseInt(node.style.width, 10);
 
-        const startIndex = Math.round(finalLeft / cellWidth);
-        const cellSpan = Math.round(finalWidth / cellWidth);
+        const startIndex = Math.round(finalLeft / currentParams.cellWidth);
+        const cellSpan = Math.round(finalWidth / currentParams.cellWidth);
         const endIndex = startIndex + cellSpan - 1;
 
-        if (startIndex >= 0 && endIndex < dates.length) {
-            const newStart = dates[startIndex];
-            const newEnd = dates[endIndex];
+        if (startIndex >= 0 && endIndex < currentParams.dates.length) {
+            const newStart = currentParams.dates[startIndex];
+            const newEnd = currentParams.dates[endIndex];
 
             // Dispatch update to store
-            if (subtaskId) {
-                appState.updateSubtaskPeriod(taskId, subtaskId, { startDate: newStart, endDate: newEnd });
+            if (currentParams.subtaskId) {
+                appState.updateSubtaskPeriod(currentParams.taskId, currentParams.subtaskId, { startDate: newStart, endDate: newEnd });
             } else {
-                appState.updateTask(taskId, { startDate: newStart, endDate: newEnd });
+                appState.updateTask(currentParams.taskId, { startDate: newStart, endDate: newEnd });
             }
         } else {
-            // Revert visually if out of bounds (Svelte reactivity will naturally fix it on next render, but just in case)
+            // Revert visually if out of bounds
             const state = get(appState);
-            const task = state.tasks.find(t => t.id === taskId);
+            const task = state.tasks.find(t => t.id === currentParams.taskId);
             if (task) {
                  let oStart = -1, oEnd = -1;
-                 if (subtaskId) {
-                     const subtask = task.subtasks.find(s => s.id === subtaskId);
+                 if (currentParams.subtaskId) {
+                     const subtask = task.subtasks.find(s => s.id === currentParams.subtaskId);
                      if (subtask) {
-                         oStart = dates.indexOf(subtask.startDate || '');
-                         oEnd = dates.indexOf(subtask.endDate || '');
+                         oStart = currentParams.dates.indexOf(subtask.startDate || '');
+                         oEnd = currentParams.dates.indexOf(subtask.endDate || '');
                      }
                  } else {
-                     oStart = dates.indexOf(task.startDate || '');
-                     oEnd = dates.indexOf(task.endDate || '');
+                     oStart = currentParams.dates.indexOf(task.startDate || '');
+                     oEnd = currentParams.dates.indexOf(task.endDate || '');
                  }
                  if(oStart !== -1 && oEnd !== -1) {
-                     node.style.left = `${oStart * cellWidth}px`;
-                     node.style.width = `${(oEnd - oStart + 1) * cellWidth}px`;
+                     node.style.left = `${oStart * currentParams.cellWidth}px`;
+                     node.style.width = `${(oEnd - oStart + 1) * currentParams.cellWidth}px`;
                  }
             }
         }
@@ -103,6 +104,9 @@ export function setupBarInteractions(node: HTMLElement, { taskId, subtaskId, dat
     node.addEventListener('mousedown', onMouseDown);
 
     return {
+        update(newParams: { taskId: string, subtaskId?: string, dates: string[], cellWidth: number }) {
+            currentParams = newParams;
+        },
         destroy() {
             node.removeEventListener('mousedown', onMouseDown);
             document.removeEventListener('mousemove', onMouseMove);
